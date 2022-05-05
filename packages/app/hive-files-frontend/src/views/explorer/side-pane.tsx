@@ -24,7 +24,7 @@ export const SidePane : React.FC<SidePaneProps> = (props) => {
                 border={{side: 'top', size: 'small', color: 'accent-1'}}>
                 <Text>Running jobs</Text>
                 <List data={props.selected?.[0]?.conversions?.map((x) => x.pipeline.name)}>
-                    {(datum) => (
+                    {(datum: any) => (
                         <Box gap="xsmall" align="center" direction="row">
                             <Spinner color="accent-1"/>
                             <Text size="small">{datum}</Text>

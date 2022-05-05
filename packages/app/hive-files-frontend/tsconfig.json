@@ -1,8 +1,8 @@
 {
-  "extends": "ts-config-single-spa",
+  "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "jsx": "react-jsx",
-    "declarationDir": "dist"
+    "outDir": "dist/"
   },
   "files": ["src/hivefiles-app-frontend.tsx"],
   "include": ["src/**/*"],

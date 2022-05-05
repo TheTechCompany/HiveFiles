@@ -24,7 +24,7 @@ export const Explorer: React.FC<{}> = (props) => {
     const navigate = useNavigate();
 
     const parentRef = useRef<{id?: string}>({id: undefined})
-    const [ parentId, _setParentId ] = useState<string>(undefined)
+    const [ parentId, _setParentId ] = useState<string>()
 
     const setParentId = (id: string) => {
         parentRef.current.id = id;

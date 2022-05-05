@@ -85,7 +85,7 @@ export const Explorer: React.FC<{
         if (folderId && folderId != "null") {
 			onNavigate({id: folderId, path: `/explore/${folderId}`})
         } else {
-            onNavigate({id: undefined, path: `/`})
+            // onNavigate({id: undefined, path: `/`})
         }
     }
 
@@ -298,7 +298,7 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
             let crumb_name = file?.path?.split('/')
             let crumb_id = file?.path_id?.split('/')
 
-            return (crumb_name || []).map((x, ix) => ({ id: crumb_id[ix], name: x }))
+            return [] // (crumb_name || []).map((x, ix) => ({ id: crumb_id[ix], name: x }))
         } else {
             return [{ id: "null", name: "/Shared FS" }]
         }
@@ -309,10 +309,10 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
    
             let ids = breadcrumb.ids.split('/')
             console.log(ids)
-            let uploads = uploading.current.loading.slice()
+            let uploads = uploading.current.loading?.slice()
             
             let id = nanoid();
-            uploads = uploads.concat(files.map((x) => ({id: id, name: x.name, percent: 0})))
+            uploads = [].concat([]) //files.map((x) => ({id: id, name: x.name, percent: 0})))
             console.log("Uploading with slug", parentId) //ref.current.id)
             setUploading(uploads)
 
@@ -432,7 +432,7 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
                         {(Array.isArray(files) ? files?.filter((a) => selected.indexOf(a.id) > -1) : files ? [files] : []).map((file) => (
                             <Box overflow="hidden" round="xsmall" background="neutral-2" elevation="small">
                                 <Box direction="row" background="accent-2" pad="xsmall"><Text>{file.name}</Text></Box>
-                                {file.conversions.map((x) => (
+                                {/* {file.conversions.map((x) => (
                                     <Box align="center" direction="row">
                                       {!x.completedAt &&  <Spinner size="small" />}
                                     <Box>
@@ -440,7 +440,7 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
                                         <Text size="xsmall">{getDuration(x.startedAt, x.completedAt)}</Text>
                                     </Box>
                                     </Box>
-                                ))}
+                                ))} */}
                             </Box>
                         ))}
                     </Box>

@@ -1,3 +1,4 @@
+import { Box } from "grommet";
 import React from "react";
 import ReactDOM from "react-dom";
 import singleSpaReact from "single-spa-react";
@@ -9,7 +10,7 @@ const lifecycles = singleSpaReact({
   rootComponent: Root,
   errorBoundary(err, info, props) {
     // Customize the root error boundary for your microfrontend here.
-    return null;
+    return <Box>Error {JSON.stringify(err)}</Box>;
   },
 });
 

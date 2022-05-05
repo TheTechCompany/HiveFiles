@@ -20,20 +20,24 @@ const uploadLink = createUploadLink({
   
 })
 
+const API_URL = localStorage.getItem('HEXHIVE_API');
+
+
 const client = new ApolloClient({
-  link: uploadLink,
-  cache: new InMemoryCache(),
+  uri: process.env.NODE_ENV == 'production'
+  ? `${API_URL || process.env.REACT_APP_API}/graphql`
+  : "http://localhost:7000/graphql",
+    cache: new InMemoryCache(),
   credentials: 'include'
 })
 
-export default function Root(props) {
+export default function Root(props: any) {
 
 
   return (
     <AuthProvider
       authorizationServer={process.env.NODE_ENV == 'production' ? (process.env.REACT_APP_API || "https://staging-api.hexhive.io") : 'http://localhost:7000'}
       >
-        {(user) => user ? (
           <Grommet   
                 
             style={{display: 'flex', height: '100%', width: '100%'}}
@@ -47,7 +51,7 @@ export default function Root(props) {
             </Router>
             </ApolloProvider>
             </Grommet>
-        ) : <Loader />}
+       
    
   </AuthProvider>);
 }
