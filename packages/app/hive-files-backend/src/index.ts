@@ -16,35 +16,24 @@ import { HiveGraph } from '@hexhive/graphql-server'
 import typeDefs from './schema';
 import resolvers from './resolvers';
 
-import { Pool } from 'pg';
+import schema from './schema'
 
-import neo4j from 'neo4j-driver'
-
+import { PrismaClient } from '@prisma/client'
 
 (async () => {
+    const prisma = new PrismaClient();
+
     const app = express();
 
     app.use(bodyParser.json())
 
-	// const driver = neo4j.driver(
-	// 	process.env.NEO4J_URI || "localhost",
-	// 	neo4j.auth.basic(process.env.NEO4J_USER || "neo4j", process.env.NEO4J_PASSWORD || "test")
-	// )
-
-    const pool = new Pool({
-        host: 'localhost',
-        user: 'postgres',
-        password: 'test',
-        database: 'hivefiles'
-    })
-
-    console.log({typeDefs})
+    const { typeDefs, resolvers } = schema(prisma)
 
     const graphServer = new HiveGraph({
         rootServer: process.env.ROOT_SERVER || 'http://localhost:7000',
         schema: {
             typeDefs,
-            resolvers: resolvers(pool)
+            resolvers
         },
         dev: false,
         uploads: true
@@ -52,10 +41,6 @@ import neo4j from 'neo4j-driver'
 
     await graphServer.init();
 
-    // app.use('/graphql', graphqlUploadExpress({maxFileSize: 100 * 1024 * 1024, maxFiles: 20}))
-    // app.use('/graphql', (req, res) => {
-    //     console.log(req.headers)
-    // })
     app.use(graphServer.middleware) 
 
     app.listen(9013, () => {

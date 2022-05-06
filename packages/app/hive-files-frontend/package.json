@@ -52,10 +52,10 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "@apollo/client": "^3.5.10",
+    "@apollo/client": "^3.6.2",
     "@hexhive/auth-ui": "^0.0.6-alpha.10",
     "@hexhive/styles": "^0.0.6-alpha.13",
-    "@hexhive/ui": "0.0.11",
+    "@hexhive/ui": "^0.0.11",
     "@hivefiles-app/api": "^1.0.0",
     "@types/jest": "^27.0.1",
     "@types/react": "^17.0.19",

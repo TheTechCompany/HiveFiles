@@ -43,8 +43,8 @@ export const Explorer: React.FC<{
     console.log(parentId)
 
     const UPLOAD_FILE = gql`
-        mutation SingleUpload($path: String!, $file: Upload!) {
-            put(path: $path, file: $file){
+        mutation SingleUpload($path: String!, $file: [Upload]!) {
+            uploadFiles(path: $path, files: $file){
                 name
             }
         }
@@ -52,13 +52,13 @@ export const Explorer: React.FC<{
 
     const MAKE_DIR = gql`
         mutation MakeDir($path: String!, $name: String!) {
-            mkdir(path: $path, name: $name){
+            createDirectory(path: $path, name: $name){
                 name
             }
         }
     `
 
-    const [ uploadFile ] = useMutation(UPLOAD_FILE)
+    const [ uploadFiles ] = useMutation(UPLOAD_FILE)
     const [ createDirectory ] = useMutation(MAKE_DIR);
 
     useEffect(() => {
@@ -239,26 +239,17 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
     const { data } = useApollo(gql`
       query GET_FILES($path: String!) {
 
-        cwd:ls(path: $path){
+        cwd:files(path: $path){
+            id
             name
 
-            isFolder
-        }
-        hiveOrganisations {
-            
-            files {
-                ... on File {
-                    name
+            size
 
-                    organisation{
-                        id
-                    }
-                }
-            }
+            directory
         }
   
       }
-    `, { variables: {path: explorerPath}, fetchPolicy: 'no-cache', client: apolloClient})
+    `, { variables: {path: explorerPath} })
 
     const files = data?.cwd || []; //hiveOrganisations?.[0]?.files;
     
@@ -274,14 +265,8 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
 
     // }, [data, parentId])
 
-    console.log(files)
-
-    const isFolder = data?.hiveFiles?.[0]?.isFolder;
-
     const fetchFiles = () => {
         client.refetchQueries({ include: ["GET_FILES"] })
-      
-
     }
 
 
@@ -319,7 +304,7 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
             console.log({files})
             
 
-            uploadFile({variables: {path: explorerPath, file: files?.[0]}}).then((resp) => {
+            uploadFiles({variables: {path: explorerPath, file: files}}).then((resp) => {
                 fetchFiles()
                 console.log(resp)
             })
@@ -337,16 +322,7 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
             //     fetchFiles()
             // })
     }, [parentId, explorerPath])
-    
-    const getDuration = (start: string, end?: string) => {
-       
-        let dur = intervalToDuration({
-            start: new Date(start || new Date()),
-            end: new Date(end || new Date())
-        })
 
-        return formatDuration(dur)
-    }
 
     return (
         <Box
@@ -416,7 +392,10 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
                     // setSelected([])
                     // exploreFolder(file.id)
                 }}
-                files={files} />
+                files={files.map((file: any) => ({
+                    ...file,
+                    isFolder: file.directory
+                }))} />
                 <Collapsible 
                     direction="horizontal"
                     open={inspector}>

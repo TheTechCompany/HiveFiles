@@ -27,7 +27,7 @@ export default `
         size: Int!
         mimeType: String!
         parent: Folder 
-        isFolder: Boolean
+        directory: Boolean
         organisation: HiveOrganisation 
     }
 

@@ -11,8 +11,13 @@ import { Explorer } from "./views/explorer";
 import {App} from "./App";
 import { AuthProvider, Loader } from '@hexhive/auth-ui'
 
+const API_URL = localStorage.getItem('HEXHIVE_API');
+
 const uploadLink = createUploadLink({
-  uri: process.env.REACT_APP_API ?  `${process.env.REACT_APP_API}/graphql?appliance=HiveFiles` : 'http://localhost:7000/graphql?appliance=HiveFiles',
+  uri: process.env.NODE_ENV == 'production'
+  ? `${API_URL || process.env.REACT_APP_API}/graphql`
+  : "http://localhost:7000/graphql",
+
   headers: {
     "keep-alive": "true"
   },
@@ -20,14 +25,11 @@ const uploadLink = createUploadLink({
   
 })
 
-const API_URL = localStorage.getItem('HEXHIVE_API');
 
 
 const client = new ApolloClient({
-  uri: process.env.NODE_ENV == 'production'
-  ? `${API_URL || process.env.REACT_APP_API}/graphql`
-  : "http://localhost:7000/graphql",
-    cache: new InMemoryCache(),
+  link: uploadLink,
+  cache: new InMemoryCache(),
   credentials: 'include'
 })
 

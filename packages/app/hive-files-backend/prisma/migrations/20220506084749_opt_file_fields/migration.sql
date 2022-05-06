@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "File" ALTER COLUMN "extension" DROP NOT NULL,
+ALTER COLUMN "mimeType" DROP NOT NULL;

@@ -13,6 +13,24 @@ datasource db {
 
 model File {
   id String @id
+  
   name String
-  path String
+
+  mimeType String?
+
+  extension String?
+  
+  directory Boolean
+  size Int
+
+  children File[] @relation(name: "hasChildren")
+
+  parent File? @relation(name: "hasChildren", fields: [parentId], references: [id])
+  parentId String?
+
+  createdAt DateTime @default(now())
+  lastUpdated DateTime @default(now())
+
+  organisation String
 }
+
