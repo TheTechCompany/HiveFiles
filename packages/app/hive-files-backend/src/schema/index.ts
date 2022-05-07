@@ -219,7 +219,6 @@ export default (prisma: PrismaClient) => {
                 const { id: startDir, steps } = (await getLastPointInPath(path, context?.jwt?.organisation)) || {}
                 const {id: parentId} = (await getIDForPath(path, context?.jwt?.organisation)) || {}
 
-                console.log({parentId, path, startDir, steps});
 
                 if(args.recursive){
                     let results = [];
@@ -241,12 +240,7 @@ export default (prisma: PrismaClient) => {
                                     organisation: context?.jwt?.organisation
                                 }
                             })
-                            // const file = await prisma.$executeRaw`
-                            //     INSERT INTO "File" 
-                            //         (id, name, size, directory, organisation)
-                            //     VALUES
-                            //         (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation})
-                            // `
+                      
 
                             results.push(file)
                             // return file
@@ -262,12 +256,7 @@ export default (prisma: PrismaClient) => {
                                     parentId: subId
                                 }
                             })
-                            // const file = await prisma.$executeRaw`
-                            // INSERT INTO "File" 
-                            //     (id, name, size, directory, organisation, "parentId")
-                            // VALUES
-                            //     (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation}, ${subId})
-                            // `
+                       
                             results.push(file)
                         }
                     }
@@ -288,12 +277,7 @@ export default (prisma: PrismaClient) => {
                                 organisation: context?.jwt?.organisation
                             }
                         })
-                        // const file = await prisma.$executeRaw`
-                        //     INSERT INTO "File" 
-                        //         (id, name, size, directory, organisation)
-                        //     VALUES
-                        //         (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation})
-                        // `
+                       
                         return file
                     }else{
                         const file = await prisma.file.create({
@@ -306,12 +290,7 @@ export default (prisma: PrismaClient) => {
                                 parentId: parentId
                             }
                         })
-                        // const file = await prisma.$executeRaw`
-                        // INSERT INTO "File" 
-                        //     (id, name, size, directory, organisation, "parentId")
-                        // VALUES
-                        //     (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation}, ${parentId})
-                        // `
+                
                         return file
                     }
                 }
