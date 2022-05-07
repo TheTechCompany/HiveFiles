@@ -22,7 +22,7 @@ export default `
     union FSItem = File | Folder
 
     type File {
-        id: ID! 
+        id: ID
         name: String
         size: Int
         mimeType: String

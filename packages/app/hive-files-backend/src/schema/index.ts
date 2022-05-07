@@ -38,6 +38,36 @@ export default (prisma: PrismaClient) => {
 
     }
 
+    const getLastPointInPath = async (path: string, organisation: string) => {
+        const parts = path.split('/').slice(1)
+
+        const data = await prisma.$queryRaw<any[]>`WITH RECURSIVE cte(id, name, parentId, directory, size, pathZ, depth) AS (
+             SELECT id, name, "parentId", directory, size, ARRAY[name], 1
+                 FROM "File" 
+             WHERE "parentId" is null 
+             AND name = (string_to_array(${parts.join(',')}, ','))[1]
+             AND organisation = ${organisation}
+             
+             UNION ALL
+             
+             SELECT a.id, a.name, a."parentId", a.directory, a.size, pathZ || a.name, depth + 1
+                 FROM "File" as a 
+                 JOIN cte ON cte."id" = a."parentId"
+             WHERE organisation = ${organisation} AND
+             (
+                 a.name=(string_to_array(${parts.join(',')}, ','))[depth + 1]
+             )
+         )
+         SELECT *, array_to_string(pathZ, '/')
+         FROM cte
+         `
+ 
+         return {
+             ...data?.[data?.length - 1],
+             steps: parts.length - data?.length
+         }
+    }
+
 
     const typeDefs = `
 
@@ -56,7 +86,7 @@ export default (prisma: PrismaClient) => {
         moveFile(path: String!, newPath: String!): String!
         copyFile(path: String!, newPath: String!): String!
 
-        createDirectory(path: String!, name: String!): File!
+        createDirectory(path: String!, recursive: Boolean): File!
     }
    
     ${fileSchema}
@@ -173,33 +203,119 @@ export default (prisma: PrismaClient) => {
                 }))
     
             },
-            createDirectory: async (parent: any, args: {name: string, path: string}, context: any) => {
+            createDirectory: async (parent: any, args: {name: string, path: string, recursive: boolean}, context: any) => {
 
-                const {name, path} = args;
+                const {path} = args;
 
+                let name; // path.split('/')
+
+                let parts = path.split('/').slice(1).filter((a) => a.length > 0)
+
+                if(parts.length > 0){
+                    name = parts[parts.length - 1]
+                    parts = parts.slice(0)
+                }
+
+                const { id: startDir, steps } = (await getLastPointInPath(path, context?.jwt?.organisation)) || {}
                 const {id: parentId} = (await getIDForPath(path, context?.jwt?.organisation)) || {}
 
-                console.log({parentId, path});
+                console.log({parentId, path, startDir, steps});
 
-                if(!parentId){
-                    const file = await prisma.$executeRaw`
-                        INSERT INTO "File" 
-                            (id, name, size, directory, organisation)
-                        VALUES
-                            (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation})
-                    `
-                    return file
+                if(args.recursive){
+                    let results = [];
+                    for(var i = parts.length - steps; i < parts.length; i++){
+                        let part_path = parts.slice(0, i).join('/')
+                        name = parts[i]
+
+                        const { id: subId } = await getIDForPath(`/${part_path}`, context?.jwt?.organisation) || {};
+
+                        if(!subId){
+                            //This might fall through if last point is not parentId
+    
+                            const file = await prisma.file.create({
+                                data: {
+                                    id: nanoid(),
+                                    name,
+                                    size: 1,
+                                    directory: true,
+                                    organisation: context?.jwt?.organisation
+                                }
+                            })
+                            // const file = await prisma.$executeRaw`
+                            //     INSERT INTO "File" 
+                            //         (id, name, size, directory, organisation)
+                            //     VALUES
+                            //         (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation})
+                            // `
+
+                            results.push(file)
+                            // return file
+                        }else{
+
+                            const file = await prisma.file.create({
+                                data: {
+                                    id: nanoid(),
+                                    name,
+                                    size: 1,
+                                    directory: true,
+                                    organisation: context?.jwt?.organisation,
+                                    parentId: subId
+                                }
+                            })
+                            // const file = await prisma.$executeRaw`
+                            // INSERT INTO "File" 
+                            //     (id, name, size, directory, organisation, "parentId")
+                            // VALUES
+                            //     (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation}, ${subId})
+                            // `
+                            results.push(file)
+                        }
+                    }
+
+                    return results?.[results?.length - 1]
+
                 }else{
-                    const file = await prisma.$executeRaw`
-                    INSERT INTO "File" 
-                        (id, name, size, directory, organisation, "parentId")
-                    VALUES
-                        (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation}, ${parentId})
-                     `
-                     return file
+
+                    if(!parentId && !startDir){
+                        //This might fall through if last point is not parentId
+
+                        const file = await prisma.file.create({
+                            data: {
+                                id: nanoid(),
+                                name: name ||'',
+                                size: 1,
+                                directory: true,
+                                organisation: context?.jwt?.organisation
+                            }
+                        })
+                        // const file = await prisma.$executeRaw`
+                        //     INSERT INTO "File" 
+                        //         (id, name, size, directory, organisation)
+                        //     VALUES
+                        //         (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation})
+                        // `
+                        return file
+                    }else{
+                        const file = await prisma.file.create({
+                            data: {
+                                id: nanoid(),
+                                name: name || '',
+                                size: 1,
+                                directory: true,
+                                organisation: context?.jwt?.organisation,
+                                parentId: parentId
+                            }
+                        })
+                        // const file = await prisma.$executeRaw`
+                        // INSERT INTO "File" 
+                        //     (id, name, size, directory, organisation, "parentId")
+                        // VALUES
+                        //     (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation}, ${parentId})
+                        // `
+                        return file
+                    }
                 }
              
-                // return file;
             }
         }
     }

@@ -23,7 +23,7 @@ import { Prisma, PrismaClient } from '@prisma/client'
 (async () => {
     const prisma = new PrismaClient();
 
-    const filePath = `/Folder/Folder2`
+    const filePath = `/Folder/Folder2/Folder3/Folder4/`
 
     const fileParts = filePath.split('/').slice(1);
 
@@ -47,7 +47,7 @@ import { Prisma, PrismaClient } from '@prisma/client'
         )
         SELECT *, array_to_string(pathZ, '/')
         FROM cte
-        WHERE depth > ${fileParts.length}
+       
     `
 
     console.log({d});
