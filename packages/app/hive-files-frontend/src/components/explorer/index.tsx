@@ -330,7 +330,11 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
             flex>
             <FolderModal
                 onSubmit={(folder) => {
-                    createDirectory({variables: {path: explorerPath, name: folder.name}}).then(() => {
+                    createDirectory({
+                    variables: {
+                        path: explorerPath, 
+                        name: folder.name
+                    }}).then(() => {
                         fetchFiles();
                         openFolderModal(false);
                     })

@@ -23,10 +23,10 @@ model File {
   directory Boolean
   size Int
 
-  children File[] @relation(name: "hasChildren")
-
-  parent File? @relation(name: "hasChildren", fields: [parentId], references: [id])
+  parent File? @relation(name: "hasChild", fields: [parentId], references: [id])
   parentId String?
+
+  children File[] @relation(name: "hasChild")
 
   createdAt DateTime @default(now())
   lastUpdated DateTime @default(now())

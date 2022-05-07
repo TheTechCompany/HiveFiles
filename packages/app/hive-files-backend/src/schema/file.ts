@@ -24,8 +24,8 @@ export default `
     type File {
         id: ID! 
         name: String
-        size: Int!
-        mimeType: String!
+        size: Int
+        mimeType: String
         parent: Folder 
         directory: Boolean
         organisation: HiveOrganisation 

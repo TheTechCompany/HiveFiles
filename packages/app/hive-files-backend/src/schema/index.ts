@@ -3,10 +3,42 @@ import { gql } from 'graphql-tag'
 import { writeFileSync } from 'fs';
 import fileSchema from './file'
 import { nanoid } from 'nanoid';
+import e from 'express';
+
 
 export default (prisma: PrismaClient) => {
     
     
+    const getIDForPath = async (path: string, organisation: string) => {
+        const parts = path.split('/').slice(1)
+
+       const data = await prisma.$queryRaw<any[]>`WITH RECURSIVE cte(id, name, parentId, directory, size, pathZ, depth) AS (
+            SELECT id, name, "parentId", directory, size, ARRAY[name], 1
+                FROM "File" 
+            WHERE "parentId" is null 
+            AND name = (string_to_array(${parts.join(',')}, ','))[1]
+            AND organisation = ${organisation}
+            
+            UNION ALL
+            
+            SELECT a.id, a.name, a."parentId", a.directory, a.size, pathZ || a.name, depth + 1
+                FROM "File" as a 
+                JOIN cte ON cte."id" = a."parentId"
+            WHERE organisation = ${organisation} AND
+            (
+                a.name=(string_to_array(${parts.join(',')}, ','))[depth + 1]
+            )
+        )
+        SELECT *, array_to_string(pathZ, '/')
+        FROM cte
+        WHERE depth = ${parts.length}
+        `
+
+        return data?.[0]
+
+    }
+
+
     const typeDefs = `
 
     type Query {
@@ -37,17 +69,50 @@ export default (prisma: PrismaClient) => {
             },
             files: async (parent: any, args: {path: string}, context: any) => {
                 let parts = args.path.split('/')
-                parts = parts.slice(1, parts.length);
-    
-                let pathQuery : any = {};
-                if(parts.length > 0){
+                parts = parts.slice(1, parts.length).filter((a) => a.length > 0);
+
+                console.log({parts, path: args.path})
+
+                if(parts.length == 0){
+                    const data = await prisma.$queryRaw`
+                        SELECT id, name, "parentId", directory FROM "File" 
+                            WHERE "parentId" is null AND organisation=${context?.jwt?.organisation}
+                    `
+                    return data;
+                }else{
+
+                const data = await prisma.$queryRaw`
+                    WITH RECURSIVE cte(id, name, parentId, directory, size, pathZ, depth) AS (
+                        SELECT id, name, "parentId", directory, size, ARRAY[name], 1
+                            FROM "File" 
+                        WHERE "parentId" is null 
+                        AND name = (string_to_array(${parts.join(',')}, ','))[1]
+                        AND organisation = ${context?.jwt?.organisation}
+                        
+                        UNION ALL
+                        
+                        SELECT a.id, a.name, a."parentId", a.directory, a.size, pathZ || a.name, depth + 1
+                            FROM "File" as a 
+                            JOIN cte ON cte."id" = a."parentId"
+                        WHERE organisation = ${context?.jwt?.organisation} AND
+                        (
+                            a.name=(string_to_array(${parts.join(',')}, ','))[depth + 1]
+                            OR 
+                            (
+                                a."parentId" = cte."id" 
+                                  
+                            ) 
+                        )
+                    )
+                    SELECT *, array_to_string(pathZ, '/')
+                    FROM cte
+                    WHERE depth = ${parts.length + 1}
+                `
+
+                console.log({data})
+                return data
 
                 }
-                return await prisma.file.findMany({
-                    where: {
-                       organisation: context?.jwt?.organisation
-                    }
-                });
                
             },
         },
@@ -57,6 +122,8 @@ export default (prisma: PrismaClient) => {
                 const { path } = args;
 
                 
+                const { id: parentId } = await getIDForPath(path, context?.jwt?.organisation);
+
                 const files = await Promise.all(args.files.map(async (file: any) => {
                     const { createReadStream, filename } = await file;
                     
@@ -75,17 +142,33 @@ export default (prisma: PrismaClient) => {
                         })
                     })
 
-                    await prisma.file.create({
-                        data: {
-                            id: nanoid(),
-                            name: filename,
-                            size: fileData.byteLength,
-                            directory: false,
-                            organisation: context?.jwt?.organisation
-                        }
-                    })
+                    if(!parentId){
+                        await prisma.$executeRaw`
+                            INSERT INTO "File" 
+                                (id, name, size, directory, organisation)
+                            VALUES 
+                                (${nanoid()}, ${filename}, ${fileData.byteLength}, false, ${context?.jwt?.organisation})
+                        `;
+
+                    }else{
+                        await prisma.$executeRaw`
+                            INSERT INTO "File"
+                                (id, name, size, directory, organisation, "parentId")
+                            VALUES
+                                (${nanoid()}, ${filename}, ${fileData.byteLength}, false, ${context?.jwt?.organisation}, ${parentId})
+                        `
+                    }
+                    // create({
+                    //     data: {
+                    //         id: nanoid(),
+                    //         name: filename,
+                    //         size: fileData.byteLength,
+                    //         directory: false,
+                    //         organisation: context?.jwt?.organisation
+                    //     }
+                    // })
     
-                    writeFileSync(filename, fileData)
+                    // writeFileSync(filename, fileData)
                     return {data: fileData, filename}
                 }))
     
@@ -94,17 +177,29 @@ export default (prisma: PrismaClient) => {
 
                 const {name, path} = args;
 
-                const file = await prisma.file.create({
-                    data: {
-                        id: nanoid(),
-                        name: name,
-                        directory: true,
-                        size: 1,
-                        organisation: context?.jwt?.organisation
-                    }
-                })
-     
-                return file;
+                const {id: parentId} = (await getIDForPath(path, context?.jwt?.organisation)) || {}
+
+                console.log({parentId, path});
+
+                if(!parentId){
+                    const file = await prisma.$executeRaw`
+                        INSERT INTO "File" 
+                            (id, name, size, directory, organisation)
+                        VALUES
+                            (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation})
+                    `
+                    return file
+                }else{
+                    const file = await prisma.$executeRaw`
+                    INSERT INTO "File" 
+                        (id, name, size, directory, organisation, "parentId")
+                    VALUES
+                        (${nanoid()}, ${name}, 1, true, ${context?.jwt?.organisation}, ${parentId})
+                     `
+                     return file
+                }
+             
+                // return file;
             }
         }
     }
