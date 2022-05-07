@@ -54,7 +54,7 @@ import { Prisma, PrismaClient } from '@prisma/client'
 
     const app = express();
 
-    app.use(bodyParser.json())
+    app.use(bodyParser.json({limit: '500mb'}))
 
     const { typeDefs, resolvers } = schema(prisma)
 

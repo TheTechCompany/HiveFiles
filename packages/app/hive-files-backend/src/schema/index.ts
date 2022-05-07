@@ -10,7 +10,9 @@ export default (prisma: PrismaClient) => {
     
     
     const getIDForPath = async (path: string, organisation: string) => {
-        const parts = path.split('/').slice(1)
+        const parts = path.split('/').slice(1)?.filter((a) => a.length > 0)
+
+        console.log("GETID", {parts})
 
        const data = await prisma.$queryRaw<any[]>`WITH RECURSIVE cte(id, name, parentId, directory, size, pathZ, depth) AS (
             SELECT id, name, "parentId", directory, size, ARRAY[name], 1
@@ -34,6 +36,7 @@ export default (prisma: PrismaClient) => {
         WHERE depth = ${parts.length}
         `
 
+        console.log("GetID", {data})
         return data?.[0]
 
     }
@@ -151,10 +154,12 @@ export default (prisma: PrismaClient) => {
 
                 const { path } = args;
 
-                
-                const { id: parentId } = await getIDForPath(path, context?.jwt?.organisation);
+                console.log("Upload files", {path, files: args.files})
 
-                const files = await Promise.all(args.files.map(async (file: any) => {
+                const { id: parentId } = await getIDForPath(path, context?.jwt?.organisation) || {};
+
+                console.log({parentId, path})
+                const files = await Promise.all(args.files?.map(async (file: any) => {
                     const { createReadStream, filename } = await file;
                     
                     const fileData = await new Promise<Buffer>((resolve, reject) => {
@@ -173,20 +178,39 @@ export default (prisma: PrismaClient) => {
                     })
 
                     if(!parentId){
-                        await prisma.$executeRaw`
-                            INSERT INTO "File" 
-                                (id, name, size, directory, organisation)
-                            VALUES 
-                                (${nanoid()}, ${filename}, ${fileData.byteLength}, false, ${context?.jwt?.organisation})
-                        `;
+                        return await prisma.file.create({
+                            data: {
+                                id: nanoid(),
+                                name: filename,
+                                size: fileData.byteLength,
+                                directory: false,
+                                organisation: context?.jwt?.organisation
+                            }
+                        })
+                        // await prisma.$executeRaw`
+                        //     INSERT INTO "File" 
+                        //         (id, name, size, directory, organisation)
+                        //     VALUES 
+                        //         (${nanoid()}, ${filename}, ${fileData.byteLength}, false, ${context?.jwt?.organisation})
+                        // `;
 
                     }else{
-                        await prisma.$executeRaw`
-                            INSERT INTO "File"
-                                (id, name, size, directory, organisation, "parentId")
-                            VALUES
-                                (${nanoid()}, ${filename}, ${fileData.byteLength}, false, ${context?.jwt?.organisation}, ${parentId})
-                        `
+                        return await prisma.file.create({
+                            data: {
+                                id: nanoid(),
+                                name: filename,
+                                size: fileData.byteLength,
+                                directory: false,
+                                organisation: context?.jwt?.organisation,
+                                parentId,
+                            }
+                        })
+                        // await prisma.$executeRaw`
+                        //     INSERT INTO "File"
+                        //         (id, name, size, directory, organisation, "parentId")
+                        //     VALUES
+                        //         (${nanoid()}, ${filename}, ${fileData.byteLength}, false, ${context?.jwt?.organisation}, ${parentId})
+                        // `
                     }
                     // create({
                     //     data: {
@@ -199,9 +223,9 @@ export default (prisma: PrismaClient) => {
                     // })
     
                     // writeFileSync(filename, fileData)
-                    return {data: fileData, filename}
+                    return {data: fileData, name:  filename}
                 }))
-    
+                return files;
             },
             createDirectory: async (parent: any, args: {name: string, path: string, recursive: boolean}, context: any) => {
 
