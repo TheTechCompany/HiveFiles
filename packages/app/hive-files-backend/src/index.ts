@@ -25,6 +25,8 @@ import { PersistenceEngine } from './persistence';
 
 (async () => {
 
+    console.log("Setting up AWS credentials")
+
     if(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY){
         const credentials = new Credentials({
             accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -35,21 +37,26 @@ import { PersistenceEngine } from './persistence';
             credentials,
             region: 'ap-southeast-2',
         })
-        
+
     }else{
         AWS.config = new AWS.Config({
             region: 'ap-southeast-2'
         })
     }
 
+    console.log("Setting up persistence engine")
 
     const persistence = new PersistenceEngine(process.env.BUCKET_NAME || 'test-bucket')
+
+    console.log("Connecting data sources");
 
     const prisma = new PrismaClient();
 
     const app = express();
 
     app.use(bodyParser.json({limit: '500mb'}))
+
+    console.log("Setting up schema");
 
     const { typeDefs, resolvers } = schema(prisma, persistence)
 
@@ -63,6 +70,8 @@ import { PersistenceEngine } from './persistence';
         uploads: true
     })
 
+    console.log("Getting ready to fire up the engines");
+    
     await graphServer.init();
 
     app.use(graphServer.middleware) 
