@@ -7,6 +7,8 @@ import { config } from 'dotenv'
 
 config();
 
+import AWS, { Credentials } from 'aws-sdk'
+
 import express from 'express'
 
 import bodyParser from 'body-parser';
@@ -19,44 +21,37 @@ import resolvers from './resolvers';
 import schema from './schema'
 
 import { Prisma, PrismaClient } from '@prisma/client'
+import { PersistenceEngine } from './persistence';
 
 (async () => {
+
+    if(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY){
+        const credentials = new Credentials({
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+        })
+
+        AWS.config = new AWS.Config({
+            credentials,
+            region: 'ap-southeast-2',
+        })
+        
+    }else{
+        AWS.config = new AWS.Config({
+            region: 'ap-southeast-2'
+        })
+    }
+
+
+    const persistence = new PersistenceEngine(process.env.BUCKET_NAME || 'test-bucket')
+
     const prisma = new PrismaClient();
-
-    const filePath = `/Folder/Folder2/Folder3/Folder4/`
-
-    const fileParts = filePath.split('/').slice(1);
-
-    console.log(fileParts.join(','))
-
-   const d = await prisma.$queryRaw`
-        WITH RECURSIVE cte(id, name, parentId, pathZ, depth) AS (
-            SELECT id, name, "parentId", ARRAY[name], 1
-                FROM "File" WHERE "parentId" is null AND name = (string_to_array(${fileParts.join(',')}, ','))[1]
-            
-            UNION ALL
-            
-            SELECT a.id, a.name, a."parentId", pathZ || a.name, depth + 1
-                FROM "File" as a JOIN cte ON cte."id" = a."parentId"
-            WHERE a.name=(string_to_array(${fileParts.join(',')}, ','))[depth + 1]
-            OR (
-                a."parentId" = cte."id" 
-                    AND 
-                depth + 1 = array_length(string_to_array(${fileParts.join(',')}, ','), 1) + 1
-            ) 
-        )
-        SELECT *, array_to_string(pathZ, '/')
-        FROM cte
-       
-    `
-
-    console.log({d});
 
     const app = express();
 
     app.use(bodyParser.json({limit: '500mb'}))
 
-    const { typeDefs, resolvers } = schema(prisma)
+    const { typeDefs, resolvers } = schema(prisma, persistence)
 
     const graphServer = new HiveGraph({
         rootServer: process.env.ROOT_SERVER || 'http://localhost:7000',

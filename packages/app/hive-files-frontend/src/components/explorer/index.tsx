@@ -14,6 +14,7 @@ import { PDFPreview } from './previews/PDF';
 import { Duration, differenceInSeconds, intervalToDuration, formatDuration } from 'date-fns'
 // import { addFolder, runWorkflow } from '../../actions/filesystem';
 import { useAuth } from '@hexhive/auth-ui';
+import { PreviewModal } from '../preview-modal';
 
 export const Explorer: React.FC<{
 	parentId?: string;
@@ -39,7 +40,8 @@ export const Explorer: React.FC<{
     const { activeUser } = useAuth()
     const [ inspector, setInspector ] = useState<boolean>(false)
 
-
+    const [ previewModalOpen, openPreviewModal ] = useState(false);
+    const [ preview, setPreview ] = useState();
     console.log(parentId)
 
     const UPLOAD_FILE = gql`
@@ -89,6 +91,10 @@ export const Explorer: React.FC<{
         }
     }
 
+    const previewFile = (file: any) => {
+        setPreview(file);
+        openPreviewModal(true);
+    }
 
     const client = apolloClient || useApolloClient()
 
@@ -242,10 +248,12 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
         cwd:files(path: $path){
             id
             name
-
+            
             size
 
             directory
+
+            createdAt
         }
   
       }
@@ -328,6 +336,14 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
         <Box
             round="xsmall"
             flex>
+            <PreviewModal 
+                open={previewModalOpen}
+                selected={preview}
+                onClose={() => {
+                    openPreviewModal(false);
+                    setPreview(undefined)
+                }}
+                />
             <FolderModal
                 onSubmit={(folder) => {
                     createDirectory({
@@ -388,11 +404,10 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
                 }}
                 actions={actions}
                 onDrop={onDrop}
-               
-                breadcrumbs={breadcrumbs}
-    
+                   
                 onClick={(file) => {
                     console.log({file})
+                    previewFile(file)
                     // setSelected([])
                     // exploreFolder(file.id)
                 }}

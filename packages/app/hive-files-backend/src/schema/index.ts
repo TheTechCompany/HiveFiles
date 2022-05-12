@@ -4,9 +4,11 @@ import { writeFileSync } from 'fs';
 import fileSchema from './file'
 import { nanoid } from 'nanoid';
 import e from 'express';
+import { PersistenceEngine } from '../persistence';
+import mime from 'mime';
 
 
-export default (prisma: PrismaClient) => {
+export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
     
     
     const getIDForPath = async (path: string, organisation: string) => {
@@ -96,9 +98,23 @@ export default (prisma: PrismaClient) => {
     `
 
     const resolvers = {
+        File: {
+            url: async (root: any) => {
+                if(!root.directory){
+                    return await persistence.readObject(root.id);
+                }else{
+                    //TODO return link to directory in hive files
+                }
+            }
+        },
         Query : {
             filesById: async (root: any, args: {ids: string[]}) => {
-                return await prisma.file.findMany({where: {id: {in: args.ids}}})
+                const files = await prisma.file.findMany({where: {id: {in: args.ids}}})
+                return files.map((x) => ({
+                    ...x,
+                    organisation: {id: x.organisation},
+                    uploadedBy: x.uploadedBy ? {id: x.uploadedBy} : undefined
+                }))
             },
             files: async (parent: any, args: {path: string}, context: any) => {
                 let parts = args.path.split('/')
@@ -107,16 +123,21 @@ export default (prisma: PrismaClient) => {
                 console.log({parts, path: args.path})
 
                 if(parts.length == 0){
-                    const data = await prisma.$queryRaw`
-                        SELECT id, name, "parentId", directory FROM "File" 
+                    const data = await prisma.$queryRaw<any[]>`
+                        SELECT id, name, "parentId", directory, size, organisation, "uploadedBy" FROM "File" 
                             WHERE "parentId" is null AND organisation=${context?.jwt?.organisation}
                     `
-                    return data;
+                    return data?.map((x) => ({
+                        ...x,
+                        organisation: {id: x.organisation},
+                        uploadedBy: x.uploadedBy ? {id: x.uploadedBy} : undefined
+                    }));
+
                 }else{
 
-                const data = await prisma.$queryRaw`
-                    WITH RECURSIVE cte(id, name, parentId, directory, size, pathZ, depth) AS (
-                        SELECT id, name, "parentId", directory, size, ARRAY[name], 1
+                const data = await prisma.$queryRaw<any[]>`
+                    WITH RECURSIVE cte(id, name, parentId, directory, size, organisation, uploadedBy, pathZ, depth) AS (
+                        SELECT id, name, "parentId", directory, size, organisation, "uploadedBy", ARRAY[name], 1
                             FROM "File" 
                         WHERE "parentId" is null 
                         AND name = (string_to_array(${parts.join(',')}, ','))[1]
@@ -124,7 +145,7 @@ export default (prisma: PrismaClient) => {
                         
                         UNION ALL
                         
-                        SELECT a.id, a.name, a."parentId", a.directory, a.size, pathZ || a.name, depth + 1
+                        SELECT a.id, a.name, a."parentId", a.directory, a.size, a.organisation, a."uploadedBy", pathZ || a.name, depth + 1
                             FROM "File" as a 
                             JOIN cte ON cte."id" = a."parentId"
                         WHERE organisation = ${context?.jwt?.organisation} AND
@@ -143,7 +164,11 @@ export default (prisma: PrismaClient) => {
                 `
 
                 console.log({data})
-                return data
+                return data?.map((x) => ({
+                    ...x,
+                    organisation: {id: x.organisation},
+                    uploadedBy: x.uploadedBy ? {id: x.uploadedBy} : undefined
+                }))
 
                 }
                
@@ -162,6 +187,8 @@ export default (prisma: PrismaClient) => {
                 const files = await Promise.all(args.files?.map(async (file: any) => {
                     const { createReadStream, filename } = await file;
                     
+                    const mimeType = mime.getType(filename);
+
                     const fileData = await new Promise<Buffer>((resolve, reject) => {
                         const readStream = createReadStream();
                         const buffers: Buffer[] = [];
@@ -177,13 +204,20 @@ export default (prisma: PrismaClient) => {
                         })
                     })
 
+                    const fileId = nanoid();
+
+                    await persistence.writeObject(fileId, fileData)
+
+                    console.log({context: context?.jwt})
                     if(!parentId){
                         return await prisma.file.create({
                             data: {
-                                id: nanoid(),
+                                id: fileId,
                                 name: filename,
                                 size: fileData.byteLength,
+                                mimeType: mimeType || 'application/octet-stream',
                                 directory: false,
+                                uploadedBy: context?.jwt?.id,
                                 organisation: context?.jwt?.organisation
                             }
                         })
@@ -195,13 +229,16 @@ export default (prisma: PrismaClient) => {
                         // `;
 
                     }else{
+
                         return await prisma.file.create({
                             data: {
-                                id: nanoid(),
+                                id: fileId,
                                 name: filename,
                                 size: fileData.byteLength,
                                 directory: false,
+                                mimeType: mimeType || 'application/octet-stream',
                                 organisation: context?.jwt?.organisation,
+                                uploadedBy: context?.jwt?.id,
                                 parentId,
                             }
                         })
@@ -221,7 +258,6 @@ export default (prisma: PrismaClient) => {
                     //         organisation: context?.jwt?.organisation
                     //     }
                     // })
-    
                     // writeFileSync(filename, fileData)
                     return {data: fileData, name:  filename}
                 }))
@@ -277,6 +313,7 @@ export default (prisma: PrismaClient) => {
                                     size: 1,
                                     directory: true,
                                     organisation: context?.jwt?.organisation,
+                                    uploadedBy: context?.jwt?.id,
                                     parentId: subId
                                 }
                             })
@@ -298,6 +335,7 @@ export default (prisma: PrismaClient) => {
                                 name: name ||'',
                                 size: 1,
                                 directory: true,
+                                uploadedBy: context?.jwt?.id,
                                 organisation: context?.jwt?.organisation
                             }
                         })
@@ -310,6 +348,7 @@ export default (prisma: PrismaClient) => {
                                 name: name || '',
                                 size: 1,
                                 directory: true,
+                                uploadedBy: context?.jwt?.id,
                                 organisation: context?.jwt?.organisation,
                                 parentId: parentId
                             }

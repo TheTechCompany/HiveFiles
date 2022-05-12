@@ -16,7 +16,7 @@ export const App = (props: any)  => {
    
   <Box background="neutral-2" flex direction="column">
     <SidebarView  
-      menu={[
+      views={[
         {label: 'Files', icon: <Folder />, path: '/', component: <Explorer />},
         {label: 'Shared', icon: <Share />, path: '/shared', component: <Box>Shared</Box>}
       ]} />

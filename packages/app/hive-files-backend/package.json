@@ -1,30 +1,31 @@
 {
-    "name": "@hivefiles-app/backend",
-    "version": "0.0.6-alpha.42",
-    "private": true,
-    "scripts": {
-        "start": "ts-node src/index.ts",
-        "build": "tsc -b"
-    },
-    "dependencies": {
-        "@hexhive/graphql-server": "1.0.2-beta.2",
-        "@hexhive/types": "^0.0.6-alpha.30",
-        "@prisma/client": "3.13.0",
-        "aws-sdk": "^2.970.0",
-        "body-parser": "^1.19.0",
-        "cors": "^2.8.5",
-        "express": "^4.17.1",
-        "graphql": "16.x",
-        "pg": "^8.7.3"
-    },
-    "devDependencies": {
-        "@types/express": "^4.17.13",
-        "@types/pg": "^8.6.5",
-        "dotenv": "^16.0.0",
-        "prisma": "3.13.0",
-        "ts-node": "^10.2.0",
-        "tsconfig-paths": "^3.10.1",
-        "typescript": "^4.3.5"
-    },
-    "gitHead": "32d15d0d5737cb2f26fb9c30a96e4abbe8ca5926"
+	"name": "@hivefiles-app/backend",
+	"version": "0.0.6-alpha.42",
+	"private": true,
+	"scripts": {
+		"start": "ts-node src/index.ts"
+	},
+	"dependencies": {
+		"@hexhive/graphql-server": "1.0.2-beta.2",
+		"@hexhive/types": "^0.0.6-alpha.30",
+		"@prisma/client": "3.13.0",
+		"aws-sdk": "^2.970.0",
+		"body-parser": "^1.19.0",
+		"cors": "^2.8.5",
+		"express": "^4.17.1",
+		"graphql": "16.x",
+		"mime": "^3.0.0",
+		"pg": "^8.7.3"
+	},
+	"devDependencies": {
+		"@types/express": "^4.17.13",
+		"@types/mime": "^2.0.3",
+		"@types/pg": "^8.6.5",
+		"dotenv": "^16.0.0",
+		"prisma": "3.13.0",
+		"ts-node": "^10.2.0",
+		"tsconfig-paths": "^3.10.1",
+		"typescript": "^4.3.5"
+	},
+	"gitHead": "32d15d0d5737cb2f26fb9c30a96e4abbe8ca5926"
 }

@@ -7,6 +7,8 @@ import { Provider } from "@pulumi/kubernetes";
 import {Deployment} from './src/deployment'
 import {Service} from './src/service'
 
+import { Persistence } from './src/persistence'
+
 const main = (async () => {
     const config = new Config();
     const org = config.require('org');
@@ -25,7 +27,9 @@ const main = (async () => {
 
     const provider = new Provider('eks', { kubeconfig });
 
-    const deployment = await rootServer.apply(async (url) => await Deployment(provider, url, dbUrl, dbPass));
+    const { bucket } = Persistence()
+
+    const deployment = await rootServer.apply(async (url) => await Deployment(provider, url, dbUrl, dbPass, bucket));
     const service = await Service(provider)
 
     return {

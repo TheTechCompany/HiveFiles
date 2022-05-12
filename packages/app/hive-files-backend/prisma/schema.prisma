@@ -31,6 +31,8 @@ model File {
   createdAt DateTime @default(now())
   lastUpdated DateTime @default(now())
 
+  uploadedBy String?
+
   organisation String
 }
 

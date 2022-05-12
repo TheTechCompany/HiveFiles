@@ -26,8 +26,16 @@ export default `
         name: String
         size: Int
         mimeType: String
+        
         parent: Folder 
         directory: Boolean
+
+        url: String
+
+        createdAt: DateTime
+
+        uploadedBy: HiveUser
+        
         organisation: HiveOrganisation 
     }
 
