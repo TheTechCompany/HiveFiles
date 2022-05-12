@@ -30,8 +30,6 @@ export const Deployment = async (provider: Provider, rootServer: string, dbUrl: 
                         volumeMounts: [
                         ],
                         env: [
-                            // { name: 'CLIENT_ID', value: process.env.CLIENT_ID },
-                            // { name: 'CLIENT_SECRET', value: process.env.CLIENT_SECRET },
                             { name: 'NODE_ENV', value: 'production' },
                             { name: 'ROOT_SERVER', value: `http://${rootServer}` },
                             { name: 'VERSION_SHIM', value: '1.0.5' },
@@ -40,10 +38,6 @@ export const Deployment = async (provider: Provider, rootServer: string, dbUrl: 
 
                             { name: 'AWS_SECRET_ACCESS_KEY', value: process.env.AWS_SECRET_ACCESS_KEY },
                             { name: 'AWS_ACCESS_KEY_ID', value: process.env.AWS_ACCESS_KEY_ID }
-                            // { name: 'UI_URL',  value: `https://${domainName}/dashboard` },
-                            // { name: 'BASE_URL',  value: `https://${domainName}`},
-                            // { name: "NEO4J_URI", value: process.env.NEO4J_URI /*neo4Url.apply((url) => `neo4j://${url}.default.svc.cluster.local`)*/ },
-                            // { name: "MONGO_URL", value: mongoUrl.apply((url) => `mongodb://${url}.default.svc.cluster.local`) },
                         ],
                         readinessProbe: {
                             httpGet: {
