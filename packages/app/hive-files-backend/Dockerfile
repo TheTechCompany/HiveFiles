@@ -16,4 +16,4 @@ RUN yarn build
 
 WORKDIR /app
 
-CMD ["yarn", "run", "start"]
+CMD ["node", "dist/index.js"]
