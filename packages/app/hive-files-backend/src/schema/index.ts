@@ -28,7 +28,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
             SELECT a.id, a.name, a."parentId", a.directory, a.size, pathZ || a.name, depth + 1
                 FROM "File" as a 
                 JOIN cte ON cte."id" = a."parentId"
-            WHERE organisation = ${organisation} AND
+            WHERE a.organisation = ${organisation} AND
             (
                 a.name=(string_to_array(${parts.join(',')}, ','))[depth + 1]
             )
@@ -58,7 +58,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
              SELECT a.id, a.name, a."parentId", a.directory, a.size, pathZ || a.name, depth + 1
                  FROM "File" as a 
                  JOIN cte ON cte."id" = a."parentId"
-             WHERE organisation = ${organisation} AND
+             WHERE a.organisation = ${organisation} AND
              (
                  a.name=(string_to_array(${parts.join(',')}, ','))[depth + 1]
              )
@@ -148,7 +148,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                         SELECT a.id, a.name, a."parentId", a.directory, a.size, a.organisation, a."uploadedBy", pathZ || a.name, depth + 1
                             FROM "File" as a 
                             JOIN cte ON cte."id" = a."parentId"
-                        WHERE organisation = ${context?.jwt?.organisation} AND
+                        WHERE a.organisation = ${context?.jwt?.organisation} AND
                         (
                             a.name=(string_to_array(${parts.join(',')}, ','))[depth + 1]
                             OR 
