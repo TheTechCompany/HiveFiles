@@ -85,7 +85,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
         
         uploadFiles(path: String, files: [Upload]): [File]
 
-        deleteFile(path: String!): String!
+        deleteFile(path: String!): File!
 
         renameFile(path: String!, newName: String!): String!
         moveFile(path: String!, newPath: String!): String!
@@ -175,6 +175,50 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
             },
         },
         Mutation: {
+            renameFile: async (parent: any, args: {path: string, newName: string}, context: any) => {
+                const { path, newName } = args;
+
+                const { id } = await getIDForPath(path, context?.jwt?.organisation) || {};
+
+                if(!id) return new Error("File does not exist");
+
+                return await prisma.file.update({
+                    where: {id},
+                    data: {
+                        name: newName
+                    }
+                })
+            },
+            moveFile: async (parent: any, args: {path: string, newPath: string}, context: any) => {
+                const { path, newPath } = args;
+
+                const { id } = await getIDForPath(path, context?.jwt?.organisation) || {};
+                
+                const { id: newId } = await getIDForPath(newPath, context?.jwt?.organisation) || {};
+
+                if(!newId) return new Error("New path does not exist");
+
+                return await prisma.file.update({
+                    where: {id},
+                    data: {
+                        parentId: newId
+                    }
+                })
+
+            },
+            deleteFile: async (parent: any, args: {path: string}, context: any) => {
+                const { path } = args;
+
+                const { id } = await getIDForPath(path, context?.jwt?.organisation) || {};
+                
+                if(id){
+                    await persistence.deleteObject(id)
+
+                    return await prisma.file.delete({where: {id}});
+                }else{
+                    return new Error("No file found");
+                }
+            },
             uploadFiles: async (parent: any, args: any, context: any) => {
 
                 const { path } = args;
