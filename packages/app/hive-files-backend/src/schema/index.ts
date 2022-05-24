@@ -140,28 +140,20 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                         SELECT id, name, "parentId", directory, size, organisation, "uploadedBy", ARRAY[name], 1
                             FROM "File" 
                         WHERE "parentId" is null 
-                        AND name = (string_to_array(${parts.join(',')}, ','))[1]
-                        AND organisation = ${context?.jwt?.organisation}
+                            AND name = (string_to_array(${parts.join(',')}, ','))[1]
+                            AND organisation = ${context?.jwt?.organisation}
                         
                         UNION ALL
                         
                         SELECT a.id, a.name, a."parentId", a.directory, a.size, a.organisation, a."uploadedBy", pathZ || a.name, depth + 1
                             FROM "File" as a 
-                            JOIN cte ON cte."id" = a."parentId"
-                        WHERE a.organisation = ${context?.jwt?.organisation} AND
-                        (
-                            a.name=(string_to_array(${parts.join(',')}, ','))[depth + 1]
-                            OR 
-                            (
-                                a."parentId" = cte."id" 
-                                  
-                            ) 
-                        )
+                        JOIN cte ON cte."id" = a."parentId" AND (depth + 1 = ${parts.length + 1} OR a.name = (string_to_array(${parts.join(',')}, ','))[depth + 1])
                     )
                     SELECT *, array_to_string(pathZ, '/')
                     FROM cte
                     WHERE depth = ${parts.length + 1}
                 `
+                // WHERE depth = ${parts.length + 1}
 
                 console.log({data})
                 return data?.map((x) => ({
