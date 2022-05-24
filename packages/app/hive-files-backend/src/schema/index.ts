@@ -44,7 +44,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
     }
 
     const getLastPointInPath = async (path: string, organisation: string) => {
-        const parts = path.split('/').slice(1)
+        const parts = path.split('/').slice(1).filter((a) => a.length > 0)
 
         const data = await prisma.$queryRaw<any[]>`WITH RECURSIVE cte(id, name, parentId, directory, size, pathZ, depth) AS (
              SELECT id, name, "parentId", directory, size, ARRAY[name], 1
@@ -85,7 +85,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
         
         uploadFiles(path: String, files: [Upload]): [File]
 
-        deleteFile(path: String!): String!
+        deleteFile(path: String!): File!
 
         renameFile(path: String!, newName: String!): String!
         moveFile(path: String!, newPath: String!): String!
@@ -175,6 +175,50 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
             },
         },
         Mutation: {
+            renameFile: async (parent: any, args: {path: string, newName: string}, context: any) => {
+                const { path, newName } = args;
+
+                const { id } = await getIDForPath(path, context?.jwt?.organisation) || {};
+
+                if(!id) return new Error("File does not exist");
+
+                return await prisma.file.update({
+                    where: {id},
+                    data: {
+                        name: newName
+                    }
+                })
+            },
+            moveFile: async (parent: any, args: {path: string, newPath: string}, context: any) => {
+                const { path, newPath } = args;
+
+                const { id } = await getIDForPath(path, context?.jwt?.organisation) || {};
+                
+                const { id: newId } = await getIDForPath(newPath, context?.jwt?.organisation) || {};
+
+                if(!newId) return new Error("New path does not exist");
+
+                return await prisma.file.update({
+                    where: {id},
+                    data: {
+                        parentId: newId
+                    }
+                })
+
+            },
+            deleteFile: async (parent: any, args: {path: string}, context: any) => {
+                const { path } = args;
+
+                const { id } = await getIDForPath(path, context?.jwt?.organisation) || {};
+                
+                if(id){
+                    await persistence.deleteObject(id)
+
+                    return await prisma.file.delete({where: {id}});
+                }else{
+                    return new Error("No file found");
+                }
+            },
             uploadFiles: async (parent: any, args: any, context: any) => {
 
                 const { path } = args;
@@ -183,7 +227,68 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
 
                 const { id: parentId } = await getIDForPath(path, context?.jwt?.organisation) || {};
 
-                console.log({parentId, path})
+                const { id: startDir, steps } = (await getLastPointInPath(path, context?.jwt?.organisation)) || {}
+
+                let results : {id: string}[] = [];
+
+                console.log({parentId, startDir, steps})
+                if(!parentId){
+                    let parts = path.split('/').slice(1).filter((a: string) => a.length > 0)
+                    let name;
+
+                    if(parts.length > 0){
+                        // name = parts[parts.length - 1]
+                        parts = parts.slice(0)
+                    }
+                    for(var i = parts.length - steps; i < parts.length; i++){
+                        let part_path = parts.slice(0, i).join('/')
+                        name = parts[i]
+
+                        console.log({i, part_path})
+
+                        const { id: subId } = await getIDForPath(`/${part_path}`, context?.jwt?.organisation) || {};
+
+                        console.log({subId})
+
+                        if(!subId){
+                            //This might fall through if last point is not parentId
+
+                            const file = await prisma.file.create({
+                                data: {
+                                    id: nanoid(),
+                                    name,
+                                    size: 1,
+                                    directory: true,
+                                    uploadedBy: context?.jwt?.id,
+                                    organisation: context?.jwt?.organisation
+                                }
+                            })
+                    
+
+                            results.push(file)
+                            // return file
+                        }else{
+
+                            const file = await prisma.file.create({
+                                data: {
+                                    id: nanoid(),
+                                    name,
+                                    size: 1,
+                                    directory: true,
+                                    organisation: context?.jwt?.organisation,
+                                    uploadedBy: context?.jwt?.id,
+                                    parentId: subId
+                                }
+                            })
+                    
+                            results.push(file)
+                        }
+                    }
+
+                }
+
+                console.log("Writing", {parentId: parentId || results?.[results?.length].id, path})
+
                 const files = await Promise.all(args.files?.map(async (file: any) => {
                     const { createReadStream, filename } = await file;
                     
@@ -208,8 +313,9 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
 
                     await persistence.writeObject(fileId, fileData)
 
-                    console.log({context: context?.jwt})
-                    if(!parentId){
+                    console.log({context: context?.jwt, fileId})
+
+                    if(!parentId && results.length == 0){
                         return await prisma.file.create({
                             data: {
                                 id: fileId,
@@ -239,7 +345,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                                 mimeType: mimeType || 'application/octet-stream',
                                 organisation: context?.jwt?.organisation,
                                 uploadedBy: context?.jwt?.id,
-                                parentId,
+                                parentId: parentId || results[results.length - 1].id,
                             }
                         })
                         // await prisma.$executeRaw`
@@ -259,7 +365,8 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                     //     }
                     // })
                     // writeFileSync(filename, fileData)
-                    return {data: fileData, name:  filename}
+                    
+                    // return {data: fileData, name:  filename}
                 }))
                 return files;
             },
