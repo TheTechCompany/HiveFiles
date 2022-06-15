@@ -280,7 +280,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                     }
                 }
 
-                console.log("Writing", {parentId: parentId || results?.[results?.length].id, path})
+                console.log("Writing", {parentId: parentId || results?.[results?.length - 1].id, path})
 
                 const files = await Promise.all(args.files?.map(async (file: any) => {
                     const { createReadStream, filename } = await file;
