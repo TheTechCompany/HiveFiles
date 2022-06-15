@@ -7,7 +7,7 @@
 		"build": "tsc -b"
 	},
 	"dependencies": {
-		"@hexhive/graphql-server": "1.0.2-beta.2",
+		"@hexhive/graphql-server": "1.0.2-beta.54",
 		"@hexhive/types": "^0.0.6-alpha.30",
 		"@prisma/client": "3.13.0",
 		"aws-sdk": "^2.970.0",

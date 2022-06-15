@@ -232,54 +232,55 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                         // name = parts[parts.length - 1]
                         parts = parts.slice(0)
                     }
-                    for(var i = parts.length - steps; i < parts.length; i++){
-                        let part_path = parts.slice(0, i).join('/')
-                        name = parts[i]
 
-                        console.log({i, part_path})
+                    try{
+                        let start_ix = parts.length - steps;
+                        
+                        results = await Promise.all(parts.slice(parts.length - steps, parts.length).map(async (part: string, ix: number) => {
+                            let part_path = parts.slice(0, start_ix + ix).join('/')
+                            name = parts[start_ix + ix]
 
-                        const { id: subId } = await getIDForPath(`/${part_path}`, context?.jwt?.organisation) || {};
+                            console.log({ix: start_ix + ix, part_path})
 
-                        console.log({subId})
+                            const { id: subId } = await getIDForPath(`/${part_path}`, context?.jwt?.organisation) || {};
 
-                        if(!subId){
-                            //This might fall through if last point is not parentId
+                            console.log({subId})
 
-                            const file = await prisma.file.create({
-                                data: {
-                                    id: nanoid(),
-                                    name,
-                                    size: 1,
-                                    directory: true,
-                                    uploadedBy: context?.jwt?.id,
-                                    organisation: context?.jwt?.organisation
-                                }
-                            })
+                            if(!subId){
+                                //This might fall through if last point is not parentId
+
+                                return await prisma.file.create({
+                                    data: {
+                                        id: nanoid(),
+                                        name,
+                                        size: 1,
+                                        directory: true,
+                                        uploadedBy: context?.jwt?.id,
+                                        organisation: context?.jwt?.organisation
+                                    }
+                                })
                     
+                            }else{
 
-                            results.push(file)
-                            // return file
-                        }else{
-
-                            const file = await prisma.file.create({
-                                data: {
-                                    id: nanoid(),
-                                    name,
-                                    size: 1,
-                                    directory: true,
-                                    organisation: context?.jwt?.organisation,
-                                    uploadedBy: context?.jwt?.id,
-                                    parentId: subId
-                                }
-                            })
-                    
-                            results.push(file)
-                        }
+                                return await prisma.file.create({
+                                    data: {
+                                        id: nanoid(),
+                                        name,
+                                        size: 1,
+                                        directory: true,
+                                        organisation: context?.jwt?.organisation,
+                                        uploadedBy: context?.jwt?.id,
+                                        parentId: subId
+                                    }
+                                })
+                            }
+                        }))
+                    }catch(e){
+                        console.error(e)
                     }
-
                 }
 
-                console.log("Writing", {parentId: parentId || results?.[results?.length].id, path})
+                console.log("Writing", {parentId: parentId || results?.[results?.length - 1].id, path})
 
                 const files = await Promise.all(args.files?.map(async (file: any) => {
                     const { createReadStream, filename } = await file;

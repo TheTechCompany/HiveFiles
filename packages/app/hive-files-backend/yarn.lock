@@ -698,10 +698,10 @@
     tslib "~2.3.0"
     value-or-promise "1.0.11"
 
-"@hexhive/graphql-server@1.0.2-beta.2":
-  version "1.0.2-beta.2"
-  resolved "https://registry.yarnpkg.com/@hexhive/graphql-server/-/graphql-server-1.0.2-beta.2.tgz#e9d7458e951e6af79f9ce8701fe28888cda6d969"
-  integrity sha512-D3eYt1usqQPMAlvk+qHygiwwv8VfiClKoGmkV/AazgT3mnAljltJMAiNAOKXn84ETP5Q0lpTK0t57FmN2UgbiQ==
+"@hexhive/graphql-server@1.0.2-beta.54":
+  version "1.0.2-beta.54"
+  resolved "https://registry.yarnpkg.com/@hexhive/graphql-server/-/graphql-server-1.0.2-beta.54.tgz#68d989f0910647885d932809a94b9a0d741a0341"
+  integrity sha512-OADL7nNbZd+ktJcPDeN5GVZ5fi3fIgNXo4Xv2+p5yGV7ZwnBO2kCrEwKFTXKe22bpAZ/ApUPUP1CUZO0q4uqUg==
   dependencies:
     "@graphql-tools/merge" "^8.2.6"
     "@graphql-tools/schema" "^8.3.5"
