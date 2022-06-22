@@ -19,7 +19,7 @@ export const Persistence = () => {
             {
                 allowedOrigins: origins,
                 allowedHeaders: ['*'],
-                maxAgeSeconds: 300,
+                maxAgeSeconds: 3000,
                 allowedMethods: ["GET", "HEAD", "POST"]
             }
         ]
