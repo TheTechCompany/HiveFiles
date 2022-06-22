@@ -1,6 +1,7 @@
 import { gql, useQuery } from '@apollo/client';
-import { BaseModal, FileViewer } from '@hexhive/ui';
+import { BaseModal, FileDialog, FileViewer } from '@hexhive/ui';
 import { Box } from '@mui/material';
+import download from 'downloadjs';
 import { Text } from 'grommet';
 import React from 'react';
 
@@ -39,32 +40,19 @@ export const PreviewModal : React.FC<PreviewModalProps> = (props) => {
 
     const file = data?.filesById?.[0];
 
+    const downloadFile = async () => {
+        const data = await fetch(file.url)
+        const blob = await data.blob();
+       
+        download(blob, file.name, file.mimeType)
+    }
+
     return (
-        <BaseModal
-            title='Preview'
-            width='xlarge'
+        <FileDialog
             open={props.open}
             onClose={props.onClose}
-            >
-            <Box sx={{flex: 1, height: '400px', maxHeight: '500px', display: 'flex'}}>
-                <Box sx={{flex: 1, width: '50%', display: 'flex', '& > *': {flex: 1}}}>
-                    <FileViewer 
-                        
-                        files={file ? [file] : []}
-                        />
-                </Box>
-                <Box sx={{
-                    flex: 1, 
-                    width: '50%', 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    padding: '6px'
-                }}>
-                    <Text>{file?.name}</Text>
-                    <Text>Uploaded at {file?.createdAt} by {file?.uploadedBy?.name}</Text>
-                    <Text>{file?.organisation?.name}</Text>
-                </Box>
-            </Box>
-        </BaseModal>
+            onDownload={downloadFile}
+            files={[file]}
+            />
     )
 }
