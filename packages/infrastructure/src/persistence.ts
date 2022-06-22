@@ -9,15 +9,15 @@ export const Persistence = () => {
     let origins: string[] = [];
 
     if(suffix == 'staging'){
-        origins = ['staging.hexhive.io'];
+        origins = ['https://staging.hexhive.io'];
     }else{
-        origins = ['go.hexhive.io'];
+        origins = ['https://go.hexhive.io'];
     }
 
     const bucket = new aws.s3.Bucket(`hive-files-storage-${suffix}`, {
         corsRules: [
             {
-                allowedOrigins: ['*'],
+                allowedOrigins: origins,
                 allowedHeaders: ['*'],
                 maxAgeSeconds: 300,
                 allowedMethods: ["GET", "HEAD", "POST"]
