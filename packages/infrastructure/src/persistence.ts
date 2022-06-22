@@ -6,7 +6,22 @@ export const Persistence = () => {
 
     const suffix = config.get('suffix');
 
-    const bucket = new aws.s3.Bucket(`hive-files-storage-${suffix}`)
+    let origins: string[] = [];
+
+    if(suffix == 'staging'){
+        origins = ['staging.hexhive.io'];
+    }else{
+        origins = ['go.hexhive.io'];
+    }
+
+    const bucket = new aws.s3.Bucket(`hive-files-storage-${suffix}`, {
+        corsRules: [
+            {
+                allowedOrigins: origins,
+                allowedMethods: ["GET", "HEAD", "OPTIONS", "POST"]
+            }
+        ]
+    })
 
     return bucket;
 }
