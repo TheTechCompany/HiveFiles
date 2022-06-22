@@ -1198,10 +1198,10 @@
   resolved "https://registry.npmjs.org/@hexhive/styles/-/styles-0.0.6-alpha.13.tgz"
   integrity sha512-bZcFH+VpAV7MpxTRdK+o+HQyEpWoCCXxA6j21g7JiTr+skzxb+yoMIGUESxJ6FgpTh6HjxYE4gHWIx/YRWxrgQ==
 
-"@hexhive/ui@^0.0.12-alpha.13":
-  version "0.0.12-alpha.13"
-  resolved "https://registry.yarnpkg.com/@hexhive/ui/-/ui-0.0.12-alpha.13.tgz#22f18814ebe64a09fe798ea65d0a7e92d3b59e32"
-  integrity sha512-EdllqSKOZyYu3wP3PA3RsVP8i6Zy74YoDqukQhXCBEkiYiRRg8p6JcSWwdzZ3sDk3MbBBZ/ApVDsKnr3+R4UAA==
+"@hexhive/ui@^0.0.12-alpha.20":
+  version "0.0.12-alpha.20"
+  resolved "https://registry.yarnpkg.com/@hexhive/ui/-/ui-0.0.12-alpha.20.tgz#4e535ce36ab8f201c5aeb6e04b1ae54cf2d03abc"
+  integrity sha512-w7cH/nE0lF91A4G6F1WaHW48BtVxcGXAkP+UUR85OxgfdwsaI1jJfGHOwdrvoXNPPMmnxHZXRkIilICTbUESCw==
   dependencies:
     "@emotion/react" "^11.9.0"
     "@emotion/styled" "^11.8.1"
@@ -1742,6 +1742,11 @@
   version "2.1.1"
   resolved "https://registry.npmjs.org/@types/d3-time/-/d3-time-2.1.1.tgz"
   integrity sha512-9MVYlmIgmRR31C5b4FVSWtuMmBHh2mOWQYfl7XAYOa8dsnb7iEmUmRSWSFgXFtkjxO65d7hTUHQC+RhR/9IWFg==
+
+"@types/downloadjs@^1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@types/downloadjs/-/downloadjs-1.4.3.tgz#01c0414a9756afa2bd438b1e2ec6c50de7df316d"
+  integrity sha512-MjJepFle/tLtT2/jmDNth6ZnwWzEhm40L+olE5HKR70ISUCfgT55eqreeHldAzFLY2HDUGsn8zgyto8KygN0CA==
 
 "@types/eslint-scope@^3.7.3":
   version "3.7.3"
@@ -3477,6 +3482,11 @@ dot-case@^3.0.4:
   dependencies:
     no-case "^3.0.4"
     tslib "^2.0.3"
+
+downloadjs@^1.4.7:
+  version "1.4.7"
+  resolved "https://registry.yarnpkg.com/downloadjs/-/downloadjs-1.4.7.tgz#f69f96f940e0d0553dac291139865a3cd0101e3c"
+  integrity sha512-LN1gO7+u9xjU5oEScGFKvXhYf7Y/empUIIEAGBs1LzUq/rg5duiDrkuH5A2lQGd5jfMOb9X9usDa2oVXwJ0U/Q==
 
 duplexer@^0.1.2:
   version "0.1.2"
