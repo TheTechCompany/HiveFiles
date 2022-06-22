@@ -18,7 +18,7 @@ export const Persistence = () => {
         corsRules: [
             {
                 allowedOrigins: origins,
-                allowedMethods: ["GET", "HEAD", "OPTIONS", "POST"]
+                allowedMethods: ["GET", "HEAD", "POST"]
             }
         ]
     })
