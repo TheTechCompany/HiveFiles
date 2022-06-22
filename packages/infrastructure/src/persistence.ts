@@ -9,9 +9,9 @@ export const Persistence = () => {
     let origins: string[] = [];
 
     if(suffix == 'staging'){
-        origins = ['staging.hexhive.io'];
+        origins = ['https://staging.hexhive.io'];
     }else{
-        origins = ['go.hexhive.io'];
+        origins = ['https://go.hexhive.io'];
     }
 
     const bucket = new aws.s3.Bucket(`hive-files-storage-${suffix}`, {
@@ -19,7 +19,7 @@ export const Persistence = () => {
             {
                 allowedOrigins: origins,
                 allowedHeaders: ['*'],
-                maxAgeSeconds: 300,
+                maxAgeSeconds: 3000,
                 allowedMethods: ["GET", "HEAD", "POST"]
             }
         ]
