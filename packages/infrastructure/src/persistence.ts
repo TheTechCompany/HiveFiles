@@ -18,6 +18,8 @@ export const Persistence = () => {
         corsRules: [
             {
                 allowedOrigins: origins,
+                allowedHeaders: ['*'],
+                maxAgeSeconds: 300,
                 allowedMethods: ["GET", "HEAD", "POST"]
             }
         ]
