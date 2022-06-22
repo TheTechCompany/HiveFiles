@@ -17,7 +17,7 @@ export const Persistence = () => {
     const bucket = new aws.s3.Bucket(`hive-files-storage-${suffix}`, {
         corsRules: [
             {
-                allowedOrigins: origins,
+                allowedOrigins: ['*'],
                 allowedHeaders: ['*'],
                 maxAgeSeconds: 3000,
                 allowedMethods: ["GET", "HEAD", "POST"]
