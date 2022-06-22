@@ -52,7 +52,7 @@ export const PreviewModal : React.FC<PreviewModalProps> = (props) => {
             open={props.open}
             onClose={props.onClose}
             onDownload={downloadFile}
-            files={[file]}
+            files={file ? [file] : []}
             />
     )
 }
