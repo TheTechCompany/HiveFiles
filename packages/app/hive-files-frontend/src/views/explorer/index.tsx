@@ -21,6 +21,8 @@ export const Explorer: React.FC<{}> = (props) => {
    
     const {id} = useParams<{id: string}>()
    
+    const [ filePreview, openFilePreview ] = useState<any>(null);
+
     const navigate = useNavigate();
 
     const parentRef = useRef<{id?: string}>({id: undefined})
@@ -37,11 +39,14 @@ export const Explorer: React.FC<{}> = (props) => {
     }, [id])
 
     return (
-        <FileExplorer
+        <>
+        
+         <FileExplorer
             onNavigate={(path) => {
                 setParentId(path.id)
                 navigate(path.path)
             }}
             parentId={parentId} />
+        </>
     )
 }

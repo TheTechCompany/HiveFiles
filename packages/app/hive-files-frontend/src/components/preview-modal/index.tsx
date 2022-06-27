@@ -1,8 +1,10 @@
 import { gql, useQuery } from '@apollo/client';
+import { BaseStyle } from '@hexhive/styles';
 import { BaseModal, FileDialog, FileViewer } from '@hexhive/ui';
-import { Box } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 import download from 'downloadjs';
 import { Text } from 'grommet';
+import moment from 'moment';
 import React from 'react';
 
 export interface PreviewModalProps {
@@ -48,11 +50,30 @@ export const PreviewModal : React.FC<PreviewModalProps> = (props) => {
     }
 
     return (
-        <FileDialog
+        <Dialog
             open={props.open}
-            onClose={props.onClose}
-            onDownload={downloadFile}
-            files={file ? [file] : []}
-            />
+            >
+            <DialogTitle
+                sx={{
+                    padding: '8px',
+                    fontSize: '1rem'
+                }}
+                bgcolor={BaseStyle.global.colors['accent-2']}
+                color={'white'}>File Preview</DialogTitle>
+            <DialogContent>
+                <Box sx={{flex: 1}}>
+                    <FileViewer 
+                        files={data?.filesById || []}
+                        />
+                </Box>
+                <Box sx={{flex: 1}}>
+                    <Typography>Uploaded By: {data?.filesById?.[0]?.uploadedBy?.name}</Typography>  
+                    <Typography>Uploaded at: {moment(data?.filesById?.[0]?.createdAt).format('HH:mma DD/MM/YY')}</Typography>
+                </Box>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={props.onClose}>Close</Button>
+            </DialogActions>
+        </Dialog>
     )
 }
