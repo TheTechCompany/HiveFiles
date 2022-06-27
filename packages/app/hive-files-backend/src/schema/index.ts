@@ -223,7 +223,8 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
 
                 let results : {id: string}[] = [];
 
-                console.log({parentId, startDir, steps})
+                console.log("Parent Start", {parentId, startDir, steps})
+
                 if(!parentId){
                     let parts = path.split('/').slice(1).filter((a: string) => a.length > 0)
                     let name;
@@ -235,8 +236,11 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
 
                     try{
                         let start_ix = parts.length - steps;
-                        
-                        results = await Promise.all(parts.slice(parts.length - steps, parts.length).map(async (part: string, ix: number) => {
+
+                        for(var ix = start_ix; ix < parts.length; ix++){
+
+                    
+                        // results = await Promise.all(parts.slice(parts.length - steps, parts.length).map(async (part: string, ix: number) => {
                             let part_path = parts.slice(0, start_ix + ix).join('/')
                             name = parts[start_ix + ix]
 
@@ -249,7 +253,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                             if(!subId){
                                 //This might fall through if last point is not parentId
 
-                                return await prisma.file.create({
+                                const folder = await prisma.file.create({
                                     data: {
                                         id: nanoid(),
                                         name,
@@ -259,10 +263,11 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                                         organisation: context?.jwt?.organisation
                                     }
                                 })
+                                results.push(folder)
                     
                             }else{
 
-                                return await prisma.file.create({
+                                const folder =  await prisma.file.create({
                                     data: {
                                         id: nanoid(),
                                         name,
@@ -273,13 +278,16 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                                         parentId: subId
                                     }
                                 })
+                                results.push(folder)
                             }
-                        }))
+                        }
+                        // }))
                     }catch(e){
                         console.error(e)
                     }
                 }
 
+                
                 console.log("Writing", {parentId: parentId || results?.[results?.length - 1]?.id, path})
 
                 const files = await Promise.all(args.files?.map(async (file: any) => {

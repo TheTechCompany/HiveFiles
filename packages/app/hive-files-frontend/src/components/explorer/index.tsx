@@ -40,8 +40,8 @@ export const Explorer: React.FC<{
     const { activeUser } = useAuth()
     const [ inspector, setInspector ] = useState<boolean>(false)
 
-    const [ previewModalOpen, openPreviewModal ] = useState(false);
-    const [ preview, setPreview ] = useState();
+    // const [ previewModalOpen, openPreviewModal ] = useState(false);
+    const [ preview, setPreview ] = useState<any>(null);
     console.log(parentId)
 
     const UPLOAD_FILE = gql`
@@ -93,7 +93,6 @@ export const Explorer: React.FC<{
 
     const previewFile = (file: any) => {
         setPreview(file);
-        openPreviewModal(true);
     }
 
     const client = apolloClient || useApolloClient()
@@ -336,14 +335,14 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
         <Box
             round="xsmall"
             flex>
+                
             <PreviewModal 
-                open={previewModalOpen}
+                open={Boolean(preview)}
                 selected={preview}
                 onClose={() => {
-                    openPreviewModal(false);
-                    setPreview(undefined)
-                }}
-                />
+                    setPreview(null)
+                }} />
+            
             <FolderModal
                 onSubmit={(folder) => {
                     createDirectory({
