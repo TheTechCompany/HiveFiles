@@ -60,7 +60,21 @@ export const Explorer: React.FC<{
         }
     `
 
-    const [ uploadFiles ] = useMutation(UPLOAD_FILE)
+    const [ uploadFiles ] = useMutation(UPLOAD_FILE, {
+        context: {
+            fetchOptions: {
+                onUploadProgress: ((progress: any) => {
+                    let percent = (progress.loaded / progress.total) * 100;
+
+                    uploading.current.loading?.forEach((item, ix) => {
+                        (uploading.current.loading || [])[ix].percent = percent;
+                    })
+                    console.info("Upload", {percent})
+                })
+            }
+        }
+    })
+
     const [ createDirectory ] = useMutation(MAKE_DIR);
 
     useEffect(() => {
@@ -138,11 +152,11 @@ export const Explorer: React.FC<{
 
     const uploading = useRef<{loading?: {id?: string, name?: string, percent?: number}[]}>({loading: []})
 
-    const [ _uploading, _setUploading ] = useState<any[]>();
+    // const [ _uploading, _setUploading ] = useState<any[]>();
 
     const setUploading = (items: any[]) => {
         uploading.current.loading = items;
-        _setUploading(items)
+        // _setUploading(items)
     }
     
     // const [ newFolder, newFolderInfo ] = useMutation(addFolder, {
@@ -304,9 +318,10 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
             let uploads = uploading.current.loading?.slice()
             
             let id = nanoid();
-            uploads = [].concat([]) //files.map((x) => ({id: id, name: x.name, percent: 0})))
+            uploads = uploads?.concat(files.map((x) => ({id: id, name: x.name, percent: 0})));
+
             console.log("Uploading with slug", parentId) //ref.current.id)
-            setUploading(uploads)
+            setUploading(uploads || [])
 
             console.log({files})
             
@@ -335,7 +350,7 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
         <Box
             round="xsmall"
             flex>
-                
+
             <PreviewModal 
                 open={Boolean(preview)}
                 selected={preview}
@@ -386,7 +401,7 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
                     setExplorerPath(path)
                     // console.log({id})
                 }}
-                uploading={_uploading}
+                uploading={uploading.current.loading}
                 previewEngines={[
                     {filetype: 'glb', component: GLBPreview},
                     {filetype: 'stp', component: GLBPreview},
