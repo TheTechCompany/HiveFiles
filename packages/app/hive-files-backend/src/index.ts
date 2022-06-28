@@ -21,6 +21,7 @@ import typeDefs from './schema';
 import resolvers from './resolvers';
 
 import schema from './schema'
+import cors from 'cors';
 
 import { Prisma, PrismaClient } from '@prisma/client'
 import { PersistenceEngine } from './persistence';
@@ -55,6 +56,12 @@ import { PersistenceEngine } from './persistence';
     const prisma = new PrismaClient();
 
     const app = express();
+
+    app.use(cors({
+        origin: (origin, callback) => {
+            callback(null, true);
+        }
+    }));
 
     app.use(bodyParser.json({limit: '500mb'}))
 
