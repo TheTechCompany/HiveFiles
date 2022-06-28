@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid';
 import e from 'express';
 import { PersistenceEngine } from '../persistence';
 import mime from 'mime';
-
+import jwt from 'jsonwebtoken';
 
 export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
     
@@ -99,9 +99,18 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
 
     const resolvers = {
         File: {
-            url: async (root: any) => {
+            url: async (root: any, args: any, context: any) => {
                 if(!root.directory){
-                    return await persistence.readObject(root.id);
+                    const token = jwt.sign({
+                        file: root.id,
+                        issuer: context.jwt.id,
+                        organisation: context.jwt.organisation
+                    }, 
+                    process.env.JWT_SECRET || 'test', 
+                    {expiresIn: 60 * 60 * 24});
+
+                    return `${process.env.EXTERNAL_URL}/api/v1/files/${root.id}/${root.name}?authToken=${token}`
+                    // return await persistence.readObject(root.id);
                 }else{
                     //TODO return link to directory in hive files
                 }

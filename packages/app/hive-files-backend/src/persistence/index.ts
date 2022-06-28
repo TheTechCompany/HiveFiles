@@ -34,6 +34,15 @@ export class PersistenceEngine {
         return item;
     }
 
+    async getObject(key: string){
+        const object = this.s3.getObject({
+            Bucket: this.bucketName,
+            Key: key
+        }).promise();
+
+        return await object
+    }
+
     async deleteObject(key: string){
         const deleted = this.s3.deleteObject({
             Bucket: this.bucketName,

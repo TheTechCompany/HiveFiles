@@ -15,6 +15,8 @@ import bodyParser from 'body-parser';
 
 import { HiveGraph } from '@hexhive/graphql-server'
 
+import apiRouter from './api'
+
 import typeDefs from './schema';
 import resolvers from './resolvers';
 
@@ -74,6 +76,7 @@ import { PersistenceEngine } from './persistence';
     
     await graphServer.init();
 
+    app.use('/api', apiRouter(prisma, persistence));
     app.use(graphServer.middleware) 
 
     app.listen(9013, () => {

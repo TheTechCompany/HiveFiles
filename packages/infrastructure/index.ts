@@ -29,8 +29,10 @@ const main = (async () => {
 
     const { bucket } = Persistence()
 
+    const hexhiveZone = await aws.route53.getZone({name: "hexhive.io"})
+
     const deployment = await rootServer.apply(async (url) => await Deployment(provider, url, dbUrl, dbPass, bucket));
-    const service = await Service(provider)
+    const service = await Service(provider, hexhiveZone, config.require('files-url'))
 
     return {
         service,
