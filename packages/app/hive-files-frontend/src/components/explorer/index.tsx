@@ -53,8 +53,8 @@ export const Explorer: React.FC<{
     `;
 
     const MAKE_DIR = gql`
-        mutation MakeDir($path: String!, $name: String!) {
-            createDirectory(path: $path, name: $name){
+        mutation MakeDir($path: String!) {
+            createDirectory(path: $path){
                 name
             }
         }
@@ -404,8 +404,7 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
                 onCreateFolder={(folderName) => {
                     createDirectory({
                         variables: {
-                            path: explorerPath, 
-                            name: folderName
+                            path: `${explorerPath}/${folderName}`
                     }}).then(() => {
                         fetchFiles();
                     })
