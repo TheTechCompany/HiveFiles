@@ -58,15 +58,15 @@ export const Explorer: React.FC<{
                 name
             }
         }
-    `
+    `;
 
     const DELETE_FILE = gql`
-        mutation DeleteFile($path){
+        mutation DeleteFile($path: String){
             deleteFile(path: $path){
                 id
             }
         }
-    `
+    `;
 
     const RENAME_FILE = gql`
         mutation RenameFile($path: String, $name: String){
@@ -74,10 +74,10 @@ export const Explorer: React.FC<{
                 id
             }
         }
-    `
+    `;
 
-    const [ deleteFile ] = useMutation(DELETE_FILE)
-    const [ renameFile ] = useMutation(RENAME_FILE)
+    const [ deleteFile ] = useMutation(DELETE_FILE);
+    const [ renameFile ] = useMutation(RENAME_FILE);
 
     const [ uploadFiles ] = useMutation(UPLOAD_FILE, {
         context: {
