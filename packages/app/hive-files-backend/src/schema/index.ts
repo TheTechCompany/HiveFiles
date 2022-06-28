@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken';
 export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
     
     
-    const getIDForPath = async (path: string, organisation: string) => {
+    const getIDForPath = async (path: string, organisation: string) : Promise<{ id: string, name: string, parentId: string, directory: boolean, size: number}> => {
         const parts = path.split('/').slice(1)?.filter((a) => a.length > 0)
 
         console.log("GETID", {parts})
@@ -210,12 +210,17 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
             deleteFile: async (parent: any, args: {path: string}, context: any) => {
                 const { path } = args;
 
-                const { id } = await getIDForPath(path, context?.jwt?.organisation) || {};
+                const { id, directory } = await getIDForPath(path, context?.jwt?.organisation) || {};
                 
                 if(id){
-                    await persistence.deleteObject(id)
 
-                    return await prisma.file.delete({where: {id}});
+                    if(directory){
+                        //TODO delete recursive
+                    }else{
+                        await persistence.deleteObject(id)
+
+                        return await prisma.file.delete({where: {id}});    
+                    }
                 }else{
                     return new Error("No file found");
                 }

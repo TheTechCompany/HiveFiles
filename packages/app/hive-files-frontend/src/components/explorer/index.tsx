@@ -15,6 +15,8 @@ import { Duration, differenceInSeconds, intervalToDuration, formatDuration } fro
 // import { addFolder, runWorkflow } from '../../actions/filesystem';
 import { useAuth } from '@hexhive/auth-ui';
 import { PreviewModal } from '../preview-modal';
+import { IAction } from '@hexhive/ui/dist/components/FileExplorer/types/action';
+import { saveAs } from 'file-saver'
 
 export const Explorer: React.FC<{
 	parentId?: string;
@@ -133,23 +135,33 @@ export const Explorer: React.FC<{
     const toggleInspector = () => {
         setInspector(!inspector)
     }
-    const actions = [
-    {
-        key: "Inspector",
-        icon: <Inspect />,
-        onClick: () => toggleInspector()
-    },
-    {
-        key: "Create Folder",
-        icon: <Folder />,
-        onClick: () => openFolderModal(true)
-    }, {
-        key: "Download",
-        icon: <Download />,
-        disabled: () => {
-            return selected.length < 1
+
+    const actions : IAction[] = [
+        {
+            key: 'download',
+            label: 'Download',
+            onClick: (file) => {
+                let saveFile = files.find((a: any) => a.id == file.id);
+               
+                if(saveFile) saveAs(saveFile.url, saveFile.name)
+            },
         }
-    }
+    // {
+    //     key: "Inspector",
+    //     icon: <Inspect />,
+    //     onClick: () => toggleInspector()
+    // },
+    // {
+    //     key: "Create Folder",
+    //     icon: <Folder />,
+    //     onClick: () => openFolderModal(true)
+    // }, {
+    //     key: "Download",
+    //     icon: <Download />,
+    //     disabled: () => {
+    //         return selected.length < 1
+    //     }
+    ]
     // {
     //     key: "Convert",
     //     icon: <CloudComputer />,
@@ -158,7 +170,7 @@ export const Explorer: React.FC<{
     //         return selected.length < 1
     //     }
     //}
-]
+
     const [selected, setSelected] = useState<string[]>([])
 
     const [folderModal, openFolderModal] = useState<boolean>(false);
@@ -281,6 +293,8 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
             id
             name
             
+            url
+
             size
 
             directory

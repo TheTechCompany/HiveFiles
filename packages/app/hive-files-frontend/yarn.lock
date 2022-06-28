@@ -1198,10 +1198,10 @@
   resolved "https://registry.npmjs.org/@hexhive/styles/-/styles-0.0.6-alpha.13.tgz"
   integrity sha512-bZcFH+VpAV7MpxTRdK+o+HQyEpWoCCXxA6j21g7JiTr+skzxb+yoMIGUESxJ6FgpTh6HjxYE4gHWIx/YRWxrgQ==
 
-"@hexhive/ui@^0.0.12-alpha.22":
-  version "0.0.12-alpha.22"
-  resolved "https://registry.yarnpkg.com/@hexhive/ui/-/ui-0.0.12-alpha.22.tgz#d13dfd3e606fcccc949b4cf009d1607ce5ec5e1a"
-  integrity sha512-Uc7BYaw5mKQCKigzhNuYT4vLzQUgOI3klwXSFcLVo1j4rJf5i3H47+nM3MYnaTVfkdo40cFOyU4KtXhylcobSg==
+"@hexhive/ui@^0.0.12-alpha.24":
+  version "0.0.12-alpha.24"
+  resolved "https://registry.yarnpkg.com/@hexhive/ui/-/ui-0.0.12-alpha.24.tgz#88db507684b6a697b8127637f80f23c3cfc30d7f"
+  integrity sha512-Cyf9BewHU4aV6Tj0sy1OtvxdHJmb4pG8CmrgqC8TtV2j4jrxzkbdI9Gqd2dl437InKTbT6uPSRPwKUyQzPylIw==
   dependencies:
     "@emotion/react" "^11.9.0"
     "@emotion/styled" "^11.8.1"
@@ -1799,6 +1799,11 @@
   version "8.1.1"
   resolved "https://registry.yarnpkg.com/@types/extract-files/-/extract-files-8.1.1.tgz#11b67e795ad2c8b483431e8d4f190db2fd22944b"
   integrity sha512-dMJJqBqyhsfJKuK7p7HyyNmki7qj1AlwhUKWx6KrU7i1K2T2SPsUsSUTWFmr/sEM1q8rfR8j5IyUmYrDbrhfjQ==
+
+"@types/file-saver@^2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@types/file-saver/-/file-saver-2.0.5.tgz#9ee342a5d1314bb0928375424a2f162f97c310c7"
+  integrity sha512-zv9kNf3keYegP5oThGLaPk8E081DFDuwfqjtiTzm6PoxChdJ1raSuADf2YGCVIyrSynLrgc8JWv296s7Q7pQSQ==
 
 "@types/graceful-fs@^4.1.2":
   version "4.1.5"
@@ -4011,6 +4016,11 @@ file-entry-cache@^6.0.1:
   integrity sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==
   dependencies:
     flat-cache "^3.0.4"
+
+file-saver@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/file-saver/-/file-saver-2.0.5.tgz#d61cfe2ce059f414d899e9dd6d4107ee25670c38"
+  integrity sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==
 
 file-selector@^0.4.0:
   version "0.4.0"
