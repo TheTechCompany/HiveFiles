@@ -1198,10 +1198,10 @@
   resolved "https://registry.npmjs.org/@hexhive/styles/-/styles-0.0.6-alpha.13.tgz"
   integrity sha512-bZcFH+VpAV7MpxTRdK+o+HQyEpWoCCXxA6j21g7JiTr+skzxb+yoMIGUESxJ6FgpTh6HjxYE4gHWIx/YRWxrgQ==
 
-"@hexhive/ui@^0.0.12-alpha.20":
-  version "0.0.12-alpha.20"
-  resolved "https://registry.yarnpkg.com/@hexhive/ui/-/ui-0.0.12-alpha.20.tgz#4e535ce36ab8f201c5aeb6e04b1ae54cf2d03abc"
-  integrity sha512-w7cH/nE0lF91A4G6F1WaHW48BtVxcGXAkP+UUR85OxgfdwsaI1jJfGHOwdrvoXNPPMmnxHZXRkIilICTbUESCw==
+"@hexhive/ui@^0.0.12-alpha.22":
+  version "0.0.12-alpha.22"
+  resolved "https://registry.yarnpkg.com/@hexhive/ui/-/ui-0.0.12-alpha.22.tgz#d13dfd3e606fcccc949b4cf009d1607ce5ec5e1a"
+  integrity sha512-Uc7BYaw5mKQCKigzhNuYT4vLzQUgOI3klwXSFcLVo1j4rJf5i3H47+nM3MYnaTVfkdo40cFOyU4KtXhylcobSg==
   dependencies:
     "@emotion/react" "^11.9.0"
     "@emotion/styled" "^11.8.1"

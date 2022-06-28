@@ -60,6 +60,25 @@ export const Explorer: React.FC<{
         }
     `
 
+    const DELETE_FILE = gql`
+        mutation DeleteFile($path){
+            deleteFile(path: $path){
+                id
+            }
+        }
+    `
+
+    const RENAME_FILE = gql`
+        mutation RenameFile($path: String, $name: String){
+            renameFile(path: $path, newName: $name){
+                id
+            }
+        }
+    `
+
+    const [ deleteFile ] = useMutation(DELETE_FILE)
+    const [ renameFile ] = useMutation(RENAME_FILE)
+
     const [ uploadFiles ] = useMutation(UPLOAD_FILE, {
         context: {
             fetchOptions: {
@@ -357,26 +376,7 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
                 onClose={() => {
                     setPreview(null)
                 }} />
-            
-            <FolderModal
-                onSubmit={(folder) => {
-                    createDirectory({
-                    variables: {
-                        path: explorerPath, 
-                        name: folder.name
-                    }}).then(() => {
-                        fetchFiles();
-                        openFolderModal(false);
-                    })
-                    console.log({folder})
-                    // newFolder({ args: { organisation: (activeUser as any)?.organisation, name: folder.name, cwd: parentId && parentId != "null" ? parentId : undefined } }).then((resp) => {
-                    //     console.log("Folder", resp)
-                    //     fetchFiles()
-
-                    // })
-                }}
-                onClose={() => openFolderModal(false)}
-                open={folderModal} />
+           
             <ConvertModal
                 onSubmit={(folder) => {
                     console.log(folder)
@@ -400,6 +400,34 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
                 onNavigate={(path) => {
                     setExplorerPath(path)
                     // console.log({id})
+                }}
+                onCreateFolder={(folderName) => {
+                    createDirectory({
+                        variables: {
+                            path: explorerPath, 
+                            name: folderName
+                    }}).then(() => {
+                        fetchFiles();
+                    })
+                }}
+                onRename={(file, newName) => {
+                    renameFile({
+                        variables: {
+                            path: `${explorerPath}/${file.name}`,
+                            name: newName
+                        }
+                    }).then(() => {
+                        fetchFiles();
+                    })
+                }}
+                onDelete={(file) => {
+                    deleteFile({
+                        variables: {
+                            path: `${explorerPath}/${file.name}`
+                        }
+                    }).then(() => {
+                        fetchFiles();
+                    })
                 }}
                 uploading={uploading.current.loading}
                 previewEngines={[

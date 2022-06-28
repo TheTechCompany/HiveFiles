@@ -87,9 +87,9 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
 
         deleteFile(path: String!): File!
 
-        renameFile(path: String!, newName: String!): String!
-        moveFile(path: String!, newPath: String!): String!
-        copyFile(path: String!, newPath: String!): String!
+        renameFile(path: String!, newName: String!): File!
+        moveFile(path: String!, newPath: String!): File!
+        copyFile(path: String!, newPath: String!): File!
 
         createDirectory(path: String!, recursive: Boolean): File!
     }
