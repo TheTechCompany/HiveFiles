@@ -60,7 +60,7 @@ export const PreviewModal : React.FC<PreviewModalProps> = (props) => {
                 }}
                 bgcolor={BaseStyle.global.colors['accent-2']}
                 color={'white'}>File Preview</DialogTitle>
-            <DialogContent>
+            <DialogContent sx={{display: 'flex', flexDirection: 'row'}}>
                 <Box sx={{flex: 1}}>
                     <FileViewer 
                         files={data?.filesById || []}
