@@ -34,6 +34,7 @@ export const Deployment = async (provider: Provider, rootServer: string, dbUrl: 
                             { name: 'ROOT_SERVER', value: `http://${rootServer}` },
                             { name: 'VERSION_SHIM', value: '1.0.5' },
                             { name: 'BUCKET_NAME', value: bucket},
+                            { name: 'EXTERNAL_URL', value: 'https://files.hexhive.io' },
                             { name: "DATABASE_URL", value: all([dbUrl, dbPass]).apply(([url, pass]) => `postgresql://postgres:${pass}@${url}.default.svc.cluster.local:5432/hivefiles`) },
 
                             { name: 'AWS_SECRET_ACCESS_KEY', value: process.env.AWS_SECRET_ACCESS_KEY },
