@@ -61,7 +61,7 @@ export const Explorer: React.FC<{
     `;
 
     const DELETE_FILE = gql`
-        mutation DeleteFile($path: String){
+        mutation DeleteFile($path: String!){
             deleteFile(path: $path){
                 id
             }
@@ -69,7 +69,7 @@ export const Explorer: React.FC<{
     `;
 
     const RENAME_FILE = gql`
-        mutation RenameFile($path: String, $name: String){
+        mutation RenameFile($path: String!, $name: String!){
             renameFile(path: $path, newName: $name){
                 id
             }
