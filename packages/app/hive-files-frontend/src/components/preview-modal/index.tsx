@@ -1,7 +1,7 @@
 import { gql, useQuery } from '@apollo/client';
 import { BaseStyle } from '@hexhive/styles';
 import { BaseModal, FileDialog, FileViewer } from '@hexhive/ui';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, TextField, DialogContent, DialogTitle, Typography } from '@mui/material';
 import download from 'downloadjs';
 import { Text } from 'grommet';
 import moment from 'moment';
@@ -67,6 +67,7 @@ export const PreviewModal : React.FC<PreviewModalProps> = (props) => {
                         />
                 </Box>
                 <Box sx={{flex: 1}}>
+                    <TextField size="small" label="Filename" value={data?.filesById?.[0]?.name} />
                     <Typography>Uploaded By: {data?.filesById?.[0]?.uploadedBy?.name}</Typography>  
                     <Typography>Uploaded at: {moment(data?.filesById?.[0]?.createdAt).format('HH:mma DD/MM/YY')}</Typography>
                 </Box>
