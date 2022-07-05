@@ -216,6 +216,9 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
 
                     if(directory){
                         //TODO delete recursive
+
+                        return await prisma.file.delete({where: {id}})
+                        
                     }else{
                         await persistence.deleteObject(id)
 
