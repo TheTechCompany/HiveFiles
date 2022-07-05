@@ -7,71 +7,10 @@ import e from 'express';
 import { PersistenceEngine } from '../persistence';
 import mime from 'mime';
 import jwt from 'jsonwebtoken';
+import { deleteFolder, getIDForPath, getLastPointInPath, listPath } from '../utils';
 
 export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
     
-    
-    const getIDForPath = async (path: string, organisation: string) : Promise<{ id: string, name: string, parentId: string, directory: boolean, size: number}> => {
-        const parts = path.split('/').slice(1)?.filter((a) => a.length > 0)
-
-        console.log("GETID", {parts})
-
-       const data = await prisma.$queryRaw<any[]>`WITH RECURSIVE cte(id, name, parentId, directory, size, pathZ, depth) AS (
-            SELECT id, name, "parentId", directory, size, ARRAY[name], 1
-                FROM "File" 
-            WHERE "parentId" is null 
-            AND name = (string_to_array(${parts.join(',')}, ','))[1]
-            AND organisation = ${organisation}
-            
-            UNION ALL
-            
-            SELECT a.id, a.name, a."parentId", a.directory, a.size, pathZ || a.name, depth + 1
-                FROM "File" as a 
-                JOIN cte ON cte."id" = a."parentId"
-            WHERE a.organisation = ${organisation} AND
-            (
-                a.name=(string_to_array(${parts.join(',')}, ','))[depth + 1]
-            )
-        )
-        SELECT *, array_to_string(pathZ, '/')
-        FROM cte
-        WHERE depth = ${parts.length}
-        `
-
-        console.log("GetID", {data})
-        return data?.[0]
-
-    }
-
-    const getLastPointInPath = async (path: string, organisation: string) => {
-        const parts = path.split('/').slice(1).filter((a) => a.length > 0)
-
-        const data = await prisma.$queryRaw<any[]>`WITH RECURSIVE cte(id, name, parentId, directory, size, pathZ, depth) AS (
-             SELECT id, name, "parentId", directory, size, ARRAY[name], 1
-                 FROM "File" 
-             WHERE "parentId" is null 
-             AND name = (string_to_array(${parts.join(',')}, ','))[1]
-             AND organisation = ${organisation}
-             
-             UNION ALL
-             
-             SELECT a.id, a.name, a."parentId", a.directory, a.size, pathZ || a.name, depth + 1
-                 FROM "File" as a 
-                 JOIN cte ON cte."id" = a."parentId"
-             WHERE a.organisation = ${organisation} AND
-             (
-                 a.name=(string_to_array(${parts.join(',')}, ','))[depth + 1]
-             )
-         )
-         SELECT *, array_to_string(pathZ, '/')
-         FROM cte
-         `
- 
-         return {
-             ...data?.[data?.length - 1],
-             steps: parts.length - data?.length
-         }
-    }
 
 
     const typeDefs = `
@@ -126,52 +65,14 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                 }))
             },
             files: async (parent: any, args: {path: string}, context: any) => {
-                let parts = args.path.split('/')
-                parts = parts.slice(1, parts.length).filter((a) => a.length > 0);
-
-                console.log({parts, path: args.path})
-
-                if(parts.length == 0){
-                    const data = await prisma.$queryRaw<any[]>`
-                        SELECT id, name, "parentId", directory, size, organisation, "uploadedBy" FROM "File" 
-                            WHERE "parentId" is null AND organisation=${context?.jwt?.organisation}
-                    `
-                    return data?.map((x) => ({
-                        ...x,
-                        organisation: {id: x.organisation},
-                        uploadedBy: x.uploadedBy ? {id: x.uploadedBy} : undefined
-                    }));
-
-                }else{
-
-                const data = await prisma.$queryRaw<any[]>`
-                    WITH RECURSIVE cte(id, name, parentId, directory, size, organisation, uploadedBy, pathZ, depth) AS (
-                        SELECT id, name, "parentId", directory, size, organisation, "uploadedBy", ARRAY[name], 1
-                            FROM "File" 
-                        WHERE "parentId" is null 
-                            AND name = (string_to_array(${parts.join(',')}, ','))[1]
-                            AND organisation = ${context?.jwt?.organisation}
-                        
-                        UNION ALL
-                        
-                        SELECT a.id, a.name, a."parentId", a.directory, a.size, a.organisation, a."uploadedBy", pathZ || a.name, depth + 1
-                            FROM "File" as a 
-                        JOIN cte ON cte."id" = a."parentId" AND (depth + 1 = ${parts.length + 1} OR a.name = (string_to_array(${parts.join(',')}, ','))[depth + 1])
-                    )
-                    SELECT *, array_to_string(pathZ, '/')
-                    FROM cte
-                    WHERE depth = ${parts.length + 1}
-                `
+               const data = await listPath(prisma, args.path, context.jwt.organisation)
                 // WHERE depth = ${parts.length + 1}
 
-                console.log({data})
                 return data?.map((x) => ({
                     ...x,
                     organisation: {id: x.organisation},
                     uploadedBy: x.uploadedBy ? {id: x.uploadedBy} : undefined
                 }))
-
-                }
                
             },
         },
@@ -179,7 +80,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
             renameFile: async (parent: any, args: {path: string, newName: string}, context: any) => {
                 const { path, newName } = args;
 
-                const { id } = await getIDForPath(path, context?.jwt?.organisation) || {};
+                const { id } = await getIDForPath(prisma, path, context?.jwt?.organisation) || {};
 
                 if(!id) return new Error("File does not exist");
 
@@ -193,9 +94,9 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
             moveFile: async (parent: any, args: {path: string, newPath: string}, context: any) => {
                 const { path, newPath } = args;
 
-                const { id } = await getIDForPath(path, context?.jwt?.organisation) || {};
+                const { id } = await getIDForPath(prisma, path, context?.jwt?.organisation) || {};
                 
-                const { id: newId } = await getIDForPath(newPath, context?.jwt?.organisation) || {};
+                const { id: newId } = await getIDForPath(prisma, newPath, context?.jwt?.organisation) || {};
 
                 if(!newId) return new Error("New path does not exist");
 
@@ -210,15 +111,14 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
             deleteFile: async (parent: any, args: {path: string}, context: any) => {
                 const { path } = args;
 
-                const { id, directory } = await getIDForPath(path, context?.jwt?.organisation) || {};
+                const { id, directory } = await getIDForPath(prisma, path, context?.jwt?.organisation) || {};
                 
                 if(id){
 
                     if(directory){
                         //TODO delete recursive
-
-                        return await prisma.file.delete({where: {id}})
-                        
+                        return await deleteFolder(prisma, persistence, path, context?.jwt?.organisation);
+                        // return await prisma.file.delete({where: {id}})
                     }else{
                         await persistence.deleteObject(id)
 
@@ -234,9 +134,9 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
 
                 console.log("Upload files", {path, files: args.files})
 
-                const { id: parentId } = await getIDForPath(path, context?.jwt?.organisation) || {};
+                const { id: parentId } = await getIDForPath(prisma, path, context?.jwt?.organisation) || {};
 
-                const { id: startDir, steps } = (await getLastPointInPath(path, context?.jwt?.organisation)) || {}
+                const { id: startDir, steps } = (await getLastPointInPath(prisma, path, context?.jwt?.organisation)) || {}
 
                 let results : {id: string}[] = [];
 
@@ -263,7 +163,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
 
                             console.log({ix: start_ix + ix, part_path})
 
-                            const { id: subId } = await getIDForPath(`/${part_path}`, context?.jwt?.organisation) || {};
+                            const { id: subId } = await getIDForPath(prisma, `/${part_path}`, context?.jwt?.organisation) || {};
 
                             console.log({subId})
 
@@ -401,8 +301,8 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                     parts = parts.slice(0)
                 }
 
-                const { id: startDir, steps } = (await getLastPointInPath(path, context?.jwt?.organisation)) || {}
-                const {id: parentId} = (await getIDForPath(path, context?.jwt?.organisation)) || {}
+                const { id: startDir, steps } = (await getLastPointInPath(prisma, path, context?.jwt?.organisation)) || {}
+                const {id: parentId} = (await getIDForPath(prisma, path, context?.jwt?.organisation)) || {}
 
 
                 if(args.recursive){
@@ -411,7 +311,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                         let part_path = parts.slice(0, i).join('/')
                         name = parts[i]
 
-                        const { id: subId } = await getIDForPath(`/${part_path}`, context?.jwt?.organisation) || {};
+                        const { id: subId } = await getIDForPath(prisma, `/${part_path}`, context?.jwt?.organisation) || {};
 
                         if(!subId){
                             //This might fall through if last point is not parentId

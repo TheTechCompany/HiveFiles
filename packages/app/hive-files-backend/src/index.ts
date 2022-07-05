@@ -18,7 +18,6 @@ import { HiveGraph } from '@hexhive/graphql-server'
 import apiRouter from './api'
 
 import typeDefs from './schema';
-import resolvers from './resolvers';
 
 import schema from './schema'
 import cors from 'cors';
