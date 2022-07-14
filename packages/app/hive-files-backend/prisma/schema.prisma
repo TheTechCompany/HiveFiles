@@ -26,6 +26,8 @@ model File {
   parent File? @relation(name: "hasChild", fields: [parentId], references: [id])
   parentId String?
 
+  comments FileComment[] @relation(name: "hasComment")
+
   children File[] @relation(name: "hasChild")
 
   createdAt DateTime @default(now())
@@ -36,3 +38,15 @@ model File {
   organisation String
 }
 
+model FileComment {
+  id String @id
+
+  comment String
+
+  posted DateTime @default(now())
+
+  postedBy String?
+
+  file File @relation(name: "hasComment", fields: [fileId], references: [id])
+  fileId String
+}

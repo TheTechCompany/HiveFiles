@@ -32,11 +32,22 @@ export default `
 
         url: String
 
+        comments: [FileComment]
+
         createdAt: DateTime
 
         uploadedBy: HiveUser
         
         organisation: HiveOrganisation 
+    }
+
+    type FileComment {
+        id: ID
+        comment: String
+        posted: DateTime
+        postedBy: HiveUser
+
+        file: File
     }
 
     type Folder {

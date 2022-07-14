@@ -30,6 +30,9 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
         moveFile(path: String!, newPath: String!): File!
         copyFile(path: String!, newPath: String!): File!
 
+        commentOnFile(id: ID, comment: String): File
+        deleteCommentOnFile(id: ID, comment: ID): File
+
         createDirectory(path: String!, recursive: Boolean): File!
     }
    
@@ -53,6 +56,17 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
                 }else{
                     //TODO return link to directory in hive files
                 }
+            },
+            comments: async (root: any, args: any, context: any) => {
+                const comments = await prisma.fileComment.findMany({
+                    where: {
+                        fileId: root.id
+                    }
+                })
+                return comments.map((x) => ({
+                    ...x,
+                    postedBy: {id: x.postedBy}
+                }))
             }
         },
         Query : {
@@ -77,6 +91,40 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
             },
         },
         Mutation: {
+            commentOnFile: async (root: any, args: any, context: any) => {
+                console.log("Comment", {context: context.jwt})
+                return await prisma.file.update({
+                    where: {
+                        id: args.id,
+                    },
+                    data: {
+                        comments: {create: [
+                            {
+                                id: '' || nanoid(),
+                                comment: args.comment,
+                                postedBy: context?.jwt?.id,
+                            }
+                        ]}
+                    }
+                })
+            },
+            deleteCommentOnFile: async (root: any, args: any, context: any) => {
+                return await prisma.file.update({
+                    where: {
+                        id: args.id
+                    },
+                    data: {
+                        comments: {
+                            deleteMany: [
+                                {
+                                    id: args.comment, 
+                                    postedBy: context?.jwt?.id
+                                }
+                            ]
+                        }
+                    }
+                })
+            },
             renameFile: async (parent: any, args: {path: string, newName: string}, context: any) => {
                 const { path, newName } = args;
 
