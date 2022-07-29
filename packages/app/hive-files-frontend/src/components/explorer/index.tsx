@@ -140,10 +140,19 @@ export const Explorer: React.FC<{
         {
             key: 'download',
             label: 'Download',
-            onClick: (file) => {
-                let saveFile = files.find((a: any) => a.id == file.id);
-               
-                if(saveFile) saveAs(saveFile.url, saveFile.name)
+            onClick: async (file) => {
+                if(!Array.isArray(file)){
+                    let saveFile = files.find((a: any) => a.id == file.id);
+                
+                    if(saveFile) saveAs(saveFile.url, saveFile.name)
+                }else{
+                    await Promise.all(file.map((f) => {
+                        
+                        let saveFile = files.find((a: any) => a.id == f.id);
+                    
+                        if(saveFile) saveAs(saveFile.url, saveFile.name)
+                    }))
+                }
             },
         }
     // {
@@ -415,32 +424,40 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
                     setExplorerPath(path)
                     // console.log({id})
                 }}
-                onCreateFolder={(folderName) => {
-                    createDirectory({
+                onCreateFolder={async (folderName) => {
+                    await createDirectory({
                         variables: {
                             path: `${explorerPath}/${folderName}`
-                    }}).then(() => {
+                    }})
                         fetchFiles();
-                    })
+                    
                 }}
-                onRename={(file, newName) => {
-                    renameFile({
+                onRename={async (file, newName) => {
+                   await renameFile({
                         variables: {
                             path: `${explorerPath}/${file.name}`,
                             name: newName
                         }
-                    }).then(() => {
-                        fetchFiles();
                     })
+                        fetchFiles();
                 }}
-                onDelete={(file) => {
-                    deleteFile({
-                        variables: {
-                            path: `${explorerPath}/${file.name}`
-                        }
-                    }).then(() => {
-                        fetchFiles();
-                    })
+                onDelete={async (file) => {
+                    if(Array.isArray(file)){
+                        await Promise.all(file.map(async (f) => {
+                            await deleteFile({
+                                variables: {
+                                    path: `${explorerPath}/${f.name}`
+                                }
+                            })
+                        }))
+                    }else{
+                        await deleteFile({
+                            variables: {
+                                path: `${explorerPath}/${file.name}`
+                            }
+                        })
+                    }
+                    fetchFiles();
                 }}
                 uploading={uploading.current.loading}
                 previewEngines={[
@@ -449,14 +466,10 @@ hiveFiles(where: ${parentId && parentId != "null" ? `{id: "${parentId}"}` : `{pa
                     {filetype: 'pdf', component: PDFPreview}
                 ]}
                 selected={selected}
-                onSelect={(id) => {
-                    setSelected([...selected, id])
+                onSelectionChange={(selected) => {
+                    setSelected(selected)
                 }}
-                onDeselect={(id) => {
-                    let s = selected.slice()
-                    s.splice(s.indexOf(id), 1)
-                    setSelected(s)
-                }}
+                
                 actions={actions}
                 onDrop={onDrop}
                    

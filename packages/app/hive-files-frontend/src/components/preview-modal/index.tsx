@@ -1,5 +1,4 @@
 import { gql, useQuery } from '@apollo/client';
-import { BaseStyle } from '@hexhive/styles';
 import { BaseModal, FileDialog, FileViewer } from '@hexhive/ui';
 import { Box, Button, Dialog, DialogActions, TextField, DialogContent, DialogTitle, Typography } from '@mui/material';
 import download from 'downloadjs';
@@ -53,13 +52,7 @@ export const PreviewModal : React.FC<PreviewModalProps> = (props) => {
         <Dialog
             open={props.open}
             >
-            <DialogTitle
-                sx={{
-                    padding: '8px',
-                    fontSize: '1rem'
-                }}
-                bgcolor={BaseStyle.global.colors['accent-2']}
-                color={'white'}>File Preview</DialogTitle>
+            <DialogTitle>File Preview</DialogTitle>
             <DialogContent sx={{display: 'flex', flexDirection: 'row', minWidth: '40vw', minHeight: '50vh'}}>
                 <Box sx={{flex: 1, display: 'flex',}}>
                     <FileViewer 

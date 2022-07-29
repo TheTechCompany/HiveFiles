@@ -1,9 +1,3 @@
-import React, { useState } from "react";
-import { FileExplorer } from '@hexhive/ui'
-import { Box, Text, List, Grommet, Spinner } from "grommet";
-import { BaseStyle } from "@hexhive/styles";
-import { BaseHeader } from "./components/header";
-import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ApolloProvider, ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { createUploadLink } from 'apollo-upload-client'
@@ -46,19 +40,13 @@ export default function Root(props: any) {
     <AuthProvider
       authorizationServer={process.env.NODE_ENV == 'production' ? (process.env.REACT_APP_API || "https://staging-api.hexhive.io") : 'http://localhost:7000'}
       >
-          <Grommet   
-                
-            style={{display: 'flex', height: '100%', width: '100%'}}
-            themeMode="dark"
-            plain 
-            theme={BaseStyle}>  
+    
             <ApolloProvider client={client}>
             <Router basename={process.env.PUBLIC_URL || '/dashboard/files'}>
               <App />
             
             </Router>
             </ApolloProvider>
-            </Grommet>
        
    
   </AuthProvider>);

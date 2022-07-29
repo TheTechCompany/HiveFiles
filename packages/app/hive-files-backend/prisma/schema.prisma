@@ -50,3 +50,67 @@ model FileComment {
   file File @relation(name: "hasComment", fields: [fileId], references: [id])
   fileId String
 }
+
+model Form {
+  id String @id
+
+  name String
+
+  versions FormSchema[] @relation(name: "hasSchema")
+
+  submissions FormSubmission[] @relation(name: "hasSubmission")
+  
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  organisation String
+}
+
+model FormSubmission {
+  id String @id
+
+  createdAt DateTime @default(now())
+
+  data Json
+
+  version FormSchema @relation(name: "forVersion", fields: [versionId], references: [id])
+  versionId String
+
+  form Form @relation(name: "hasSubmission", fields: [formId], references: [id])
+  formId String
+}
+
+model FormSchema {
+  id String @id
+
+  version String
+
+  blocks FormBlock[] @relation(name: "hasBlock")
+
+  createdAt DateTime @default(now())
+
+  submissions FormSubmission[] @relation(name: "forVersion")
+
+  form Form @relation(name: "hasSchema", fields: [formId], references: [id])
+  formId String
+
+}
+
+model FormBlock {
+  id String @id
+
+  order Int
+
+  type String
+
+  extras Json?
+
+  children FormBlock[] @relation(name: "hasChildBlock")
+
+  parent FormBlock? @relation(name: "hasChildBlock", fields: [parentId], references: [id])
+  parentId String?
+
+
+  schema FormSchema @relation(name: "hasBlock", fields: [schemaId], references: [id])
+  schemaId String
+}

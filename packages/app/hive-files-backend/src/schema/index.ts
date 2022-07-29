@@ -2,6 +2,8 @@ import { PrismaClient } from '@prisma/client'
 import { gql } from 'graphql-tag'
 import { writeFileSync } from 'fs';
 import fileSchema from './file'
+import formSchema from './form'
+
 import { nanoid } from 'nanoid';
 import e from 'express';
 import { PersistenceEngine } from '../persistence';
@@ -37,6 +39,7 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
     }
    
     ${fileSchema}
+    ${formSchema}
     `
 
     const resolvers = {
@@ -70,6 +73,19 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
             }
         },
         Query : {
+            forms: async (root: any, args: any, context: any) => {
+                let query : any = {};
+                if(args.ids){
+                    query['id'] = {in: args.ids}
+                }
+
+                return await prisma.form.findMany({
+                    where: {
+                        ...query,
+                        organisation: context?.jwt?.organisation
+                    }
+                })
+            },
             filesById: async (root: any, args: {ids: string[]}) => {
                 const files = await prisma.file.findMany({where: {id: {in: args.ids}}})
                 return files.map((x) => ({
@@ -91,6 +107,35 @@ export default (prisma: PrismaClient, persistence: PersistenceEngine) => {
             },
         },
         Mutation: {
+            createForm: async (root: any, args: any, context: any) => {
+                return await prisma.form.create({
+                    data: {
+                        id: nanoid(),
+                        name: args.input.name,
+                        createdBy: context?.jwt?.id,
+                        organisation: context?.jwt?.organisation
+                    }
+                })
+            },
+            updateForm: async (root: any, args: any, context: any) => {
+                return await prisma.form.updateMany({
+                    where: {
+                        id: args.id,
+                        organisation: context?.jwt?.organisation
+                    },
+                    data: {
+                        name: args.input.name
+                    }
+                })
+            },
+            deleteForm: async (root: any, args: any, context: any) => {
+                return await prisma.form.deleteMany({
+                    where: {
+                        id: args.id,
+                        organisation: context?.jwt?.organisation
+                    }
+                })
+            },
             commentOnFile: async (root: any, args: any, context: any) => {
                 console.log("Comment", {context: context.jwt})
                 return await prisma.file.update({
