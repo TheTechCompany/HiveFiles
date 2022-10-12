@@ -55,8 +55,8 @@
 	"dependencies": {
 		"@apollo/client": "^3.6.2",
 		"@hexhive/auth-ui": "^0.0.6-alpha.10",
-		"@hexhive/styles": "^1.0.1-alpha.37",
-		"@hexhive/ui": "^1.0.1-alpha.37",
+		"@hexhive/styles": "^1.0.1-alpha.39",
+		"@hexhive/ui": "^1.0.1-alpha.39",
 		"@lifeomic/axios-fetch": "^3.0.0",
 		"@mui/material": "^5.9.0",
 		"@types/jest": "^27.0.1",
