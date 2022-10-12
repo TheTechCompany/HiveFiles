@@ -32,31 +32,99 @@ export const Service = async (provider: Provider, zone: aws.route53.GetZoneResul
     })
 
 
+    // const service = new k8s.core.v1.Service(`${appName}-svc`, {
+    //     metadata: { 
+    //         name: `${appName}-svc`,
+    //         labels: appLabels,
+    //         annotations: {
+        
+    //             'service.beta.kubernetes.io/aws-load-balancer-ssl-cert': sslValidation.certificateArn,
+    //             'service.beta.kubernetes.io/aws-load-balancer-ssl-ports': 'https',
+    //             'service.beta.kubernetes.io/aws-load-balancer-backend-protocol': 'http',
+
+    //             'service.beta.kubernetes.io/aws-load-balancer-type': 'external',
+    //             'service.beta.kubernetes.io/aws-load-balancer-nlb-target-type': 'ip',
+    //             'service.beta.kubernetes.io/aws-load-balancer-scheme': 'internet-facing'
+    //         }
+    //     },
+    //     spec: {
+    //         type: "LoadBalancer",
+    //         ports: [{ port: 80, targetPort: "http", name: 'http' }, { port: 443, targetPort: "http", name: 'https'}],
+    //         selector: appLabels,
+    //     },
+    // }, { provider: provider });
+
+
     const service = new k8s.core.v1.Service(`${appName}-svc`, {
-        metadata: { 
+        metadata: {
             name: `${appName}-svc`,
             labels: appLabels,
             annotations: {
-        
-                'service.beta.kubernetes.io/aws-load-balancer-ssl-cert': sslValidation.certificateArn,
-                'service.beta.kubernetes.io/aws-load-balancer-ssl-ports': 'https',
-                'service.beta.kubernetes.io/aws-load-balancer-backend-protocol': 'http',
-
-                'service.beta.kubernetes.io/aws-load-balancer-type': 'external',
-                'service.beta.kubernetes.io/aws-load-balancer-nlb-target-type': 'ip',
-                'service.beta.kubernetes.io/aws-load-balancer-scheme': 'internet-facing'
-            }
+            //    'service.beta.kubernetes.io/aws-load-balancer-ssl-cert': sslValidation.certificateArn,
+            //     'service.beta.kubernetes.io/aws-load-balancer-ssl-ports': 'https',
+            //     'service.beta.kubernetes.io/aws-load-balancer-backend-protocol': 'http',
+            //     // 'service.beta.kubernetes.io/aws-load-balancer-type': 'external',
+            //     'service.beta.kubernetes.io/aws-load-balancer-type': 'nlb',
+            //     'service.beta.kubernetes.io/aws-load-balancer-nlb-target-type': 'ip',
+            //     'service.beta.kubernetes.io/aws-load-balancer-scheme': 'internet-facing',
+             }
         },
         spec: {
-            type: "LoadBalancer",
-            ports: [{ port: 80, targetPort: "http", name: 'http' }, { port: 443, targetPort: "http", name: 'https'}],
+            type: "NodePort",
+            ports: [{ name: "http", port: 80, targetPort: "http" }, { name: "https", port: 443, targetPort: 'http' }],
             selector: appLabels,
         },
     }, { provider: provider });
 
+    const ingress = new k8s.networking.v1.Ingress('frontend-ingess', {
+        metadata: {
+            // namespace: ''
+            annotations: {
+                'alb.ingress.kubernetes.io/listen-ports': '[{"HTTPS":443}, {"HTTP":80}]',
+                'alb.ingress.kubernetes.io/certificate-arn': sslCert.arn,
+                'alb.ingress.kubernetes.io/scheme': 'internet-facing',
+                'alb.ingress.kubernetes.io/group.name': 'hexhive-core',
+                'alb.ingress.kubernetes.io/success-codes': '200-499'
+                // 'alb.ingress.kubernetes.io/target-node-labels': 'cluster=hexhive-cluster'
+                // 'alb.ingress.kubernetes.io/target-type': 'ip'
+                // 'alb.ingress.kubernetes.io/subnets': subnets.ids.apply((x) => x.join(', '))
+            },
+            
+        },
+        spec: {
+            ingressClassName: 'alb',
+            rules: [
+                {
+                    host: domainName,
+                    http: {
+                        paths: [
+                            {
+                                path: '/*',
+                                pathType: 'ImplementationSpecific',
+                                backend: {
+                                    service: {
+                                        name: service.metadata.name,
+                                        port: {
+                                            name: 'http'
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }, {
+        provider
+    })
+
 
     // Export the URL for the load balanced service.
-    const url = service.status.loadBalancer.ingress[0].hostname;
+    const url = ingress.status.loadBalancer.ingress[0].hostname;
+
+    // // Export the URL for the load balanced service.
+    // const url = service.status.loadBalancer.ingress[0].hostname;
 
     const filesRecord = new aws.route53.Record(`${appName}-gateway-dns`, {
         zoneId: zone.zoneId,
