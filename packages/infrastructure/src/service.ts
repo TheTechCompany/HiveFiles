@@ -132,7 +132,8 @@ export const Service = async (provider: Provider, zone: aws.route53.GetZoneResul
         type: "A",
         aliases: [{
             name: url,
-            zoneId: 'ZCT6FZBF4DROD',
+            zoneId: 'Z1GM3OXH4ZPM65',
+            // zoneId: 'ZCT6FZBF4DROD',
             evaluateTargetHealth: true
         }]   
     })
